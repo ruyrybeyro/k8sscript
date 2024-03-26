@@ -6,7 +6,7 @@
 sudo dnf update -y
 
 # Install necessary packages
-sudo dnf install -y jq curl tar vim wget firewalld yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils
+sudo dnf install -y jq curl tar vim firewalld yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils
 
 # make rsyslog a bit less noisy
 cat <<EOF | sudo tee /etc/rsyslog.d/01-blocklist.conf
@@ -77,7 +77,7 @@ LATEST_RELEASE=$(curl -s "https://api.github.com/repos/containernetworking/plugi
 OS="linux"
 ARCH="amd64"
 URL="https://github.com/containernetworking/plugins/releases/download/$LATEST_RELEASE/cni-plugins-$OS-$ARCH-$LATEST_RELEASE.tgz"
-wget -qO - "$URL" | sudo tar -C $DEST_DIR -xzvf -
+curl -s "$URL" | sudo tar -C $DEST_DIR -xzvf -
 
 sudo dnf install -y kubectl kubeadm kubelet
 sudo systemctl enable --now kubelet
