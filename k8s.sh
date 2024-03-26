@@ -72,14 +72,12 @@ sudo dnf install -y kubernetes-cni
 
 # Install CNI plugins - smash installed ones with the newer, last version
 DEST_DIR="/opt/cni/bin"
-sudo mkdir -p $DEST_DIR
+#sudo mkdir -p $DEST_DIR
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/containernetworking/plugins/releases/latest" | awk -F'"' '/tag_name/{print $4}')
 OS="linux"
 ARCH="amd64"
 URL="https://github.com/containernetworking/plugins/releases/download/$LATEST_RELEASE/cni-plugins-$OS-$ARCH-$LATEST_RELEASE.tgz"
-wget "$URL" -O /tmp/cni-plugins.tgz
-sudo tar -C $DEST_DIR -xzvf /tmp/cni-plugins.tgz
-rm /tmp/cni-plugins.tgz
+wget "$URL" | sudo tar -C $DEST_DIR -xzvf -
 
 sudo dnf install -y kubectl kubeadm kubelet
 sudo systemctl enable --now kubelet
