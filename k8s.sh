@@ -67,12 +67,10 @@ gpgkey=https://pkgs.k8s.io/core:/stable:/${LATEST_RELEASE}/rpm/repodata/repomd.x
 EOF
 
 sudo dnf update
-sudo dnf install -y kubectl kubeadm kubelet
-sudo systemctl enable --now kubelet
 
-## master specific stuff
+sudo dnf install -y kubernetes-cni
 
-# Install CNI plugins
+# Install CNI plugins - smash installed ones with the newer, last version
 DEST_DIR="/opt/cni/bin"
 sudo mkdir -p $DEST_DIR
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/containernetworking/plugins/releases/latest" | awk -F'"' '/tag_name/{print $4}')
@@ -83,7 +81,13 @@ wget "$URL" -O /tmp/cni-plugins.tgz
 sudo tar -C $DEST_DIR -xzvf /tmp/cni-plugins.tgz
 rm /tmp/cni-plugins.tgz
 
-cat <<EOF | tee kubeadm-config.yaml
+sudo dnf install -y kubectl kubeadm kubelet
+sudo systemctl enable --now kubelet
+
+## master specific stuff
+
+sudo mkdir -p /opt/k8s
+cat <<EOF | sudo tee /opt/k8s/kubeadm-config.yaml
 ---
 apiVersion: "kubeadm.k8s.io/v1beta3"
 kind: InitConfiguration
@@ -98,10 +102,10 @@ memorySwap:
 EOF
 
 # Temporary command ignoring warnings till I get a complete setup running with recommended specs
-sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config kubeadm-config.yaml
+sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config /opt/k8s/kubeadm-config.yaml
 
 mkdir -p "$HOME"/.kube
-sudo cp -i /etc/kubernetes/admin.conf "$HOME"/.kube/config
+sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
 sudo chown "$(id -u)":"$(id -g)" "$HOME"/.kube/config
 
 
@@ -109,4 +113,4 @@ kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
 #echo insecure > "$HOME"/.curlrc
 
-kubectl get node -w
+kubectl get node -w | grep -m 1 "[^t]Ready"
