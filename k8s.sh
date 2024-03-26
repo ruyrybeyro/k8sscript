@@ -77,7 +77,7 @@ LATEST_RELEASE=$(curl -s "https://api.github.com/repos/containernetworking/plugi
 OS="linux"
 ARCH="amd64"
 URL="https://github.com/containernetworking/plugins/releases/download/$LATEST_RELEASE/cni-plugins-$OS-$ARCH-$LATEST_RELEASE.tgz"
-wget "$URL" | sudo tar -C $DEST_DIR -xzvf -
+wget -qO - "$URL" | sudo tar -C $DEST_DIR -xzvf -
 
 sudo dnf install -y kubectl kubeadm kubelet
 sudo systemctl enable --now kubelet
