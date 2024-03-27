@@ -17,7 +17,7 @@ EOF
 sudo systemctl restart rsyslog
 
 # Prerequisites for kubeadm
-sudo systemctl start firewalld
+sudo systemctl --now enable firewalld
 sudo firewall-cmd --permanent --add-port=6443/tcp
 sudo firewall-cmd --permanent --add-port=2379-2380/tcp
 sudo firewall-cmd --permanent --add-port=10250/tcp
