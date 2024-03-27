@@ -53,7 +53,7 @@ sudo sysctl --system
 sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
 sudo dnf install -y containerd
 containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/g;s|"/run/containerd/containerd.sock"|"/var/run/containerd/containerd.sock"|g' | sudo tee /etc/containerd/config.toml
-sudo systemctl enable containerd
+sudo systemctl --now enable containerd
 
 # Install Kubernetes
 LATEST_RELEASE=$(curl -sSL https://dl.k8s.io/release/stable.txt | sed 's/\(\.[0-9]*\)\.[0-9]*/\1/')
@@ -80,7 +80,7 @@ URL="https://github.com/containernetworking/plugins/releases/download/$LATEST_RE
 curl -s "$URL" | sudo tar -C $DEST_DIR -xzvf -
 
 sudo dnf install -y kubectl kubeadm kubelet
-sudo systemctl enable --now kubelet
+sudo systemctl enable kubelet
 
 ## master specific stuff
 
