@@ -3,18 +3,18 @@
 #hostnamectl set-hostname k8s01
 
 # Update and upgrade packages
-sudo dnf update -y
+sudo dnf update -y && sudo dnf upgrade -y
 
 # Install necessary packages
 sudo dnf install -y jq wget curl tar vim firewalld yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils
 
-# make rsyslog a bit less noisy
-cat <<EOF | sudo tee /etc/rsyslog.d/01-blocklist.conf
-if $msg contains "run-containerd-runc-k8s.io" and $msg contains ".mount: Deactivated successfully." then {
-    stop
-}
-EOF
-sudo systemctl restart rsyslog
+# # make rsyslog a bit less noisy
+# cat <<EOF | sudo tee /etc/rsyslog.d/01-blocklist.conf
+# if $msg contains "run-containerd-runc-k8s.io" and $msg contains ".mount: Deactivated successfully." then {
+#     stop
+# }
+# EOF
+# sudo systemctl restart rsyslog
 
 # Prerequisites for kubeadm
 sudo systemctl --now enable firewalld
@@ -47,11 +47,10 @@ net.ipv4.ip_forward                 = 1
 EOF
 sudo sysctl --system
 
-#sudo dracut -f
-
+# Install containerd
 sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
 sudo dnf install -y containerd
-containerd config default | sed 's/pause:3.6/pause:3.9/g;s/SystemdCgroup = false/SystemdCgroup = true/g;s|"/run/containerd/containerd.sock"|"/var/run/containerd/containerd.sock"|g' | sudo tee /etc/containerd/config.toml
+containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/g;s|"/run/containerd/containerd.sock"|"/var/run/containerd/containerd.sock"|g' | sudo tee /etc/containerd/config.toml
 sudo systemctl --now enable containerd
 
 # Install Kubernetes
@@ -59,16 +58,24 @@ LATEST_RELEASE=$(curl -sSL https://dl.k8s.io/release/stable.txt | sed 's/\(\.[0-
 cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
-baseurl=https://pkgs.k8s.io/core:/stable:/${LATEST_RELEASE}/rpm/
+baseurl=https://pkgs.k8s.io/core:/stable:/$LATEST_RELEASE/rpm/
 enabled=1
 gpgcheck=1
-gpgkey=https://pkgs.k8s.io/core:/stable:/${LATEST_RELEASE}/rpm/repodata/repomd.xml.key
+gpgkey=https://pkgs.k8s.io/core:/stable:/$LATEST_RELEASE/rpm/repodata/repomd.xml.key
 EOF
 
-sudo dnf update
+sudo dnf update -y
 
 sudo dnf install -y kubectl kubeadm kubelet
 sudo systemctl enable kubelet
+
+# Replace default pause image version in containerd with kubeadm suggested version
+# However, the default containerd pause image version is supposed to be able to overwrite what kubeadm suggests
+
+LATEST_PAUSE_VERSION=$(kubeadm config images list --kubernetes-version=$(kubeadm version -o short) | grep pause | cut -d ':' -f 2)
+# Construct the full image name with registry prefix
+CONTAINERD_CONFIG="/etc/containerd/config.toml"
+sudo sed -i "s/\(sandbox_image = .*\:\)\(.*\)\"/\1$LATEST_PAUSE_VERSION\"/" $CONTAINERD_CONFIG
 
 ## master specific stuff
 
