@@ -66,7 +66,7 @@ EOF
 
 sudo dnf update -y
 
-sudo dnf install -y kubectl kubeadm kubelet
+sudo dnf install -y kubectl kubeadm kubelet kubernetes-cni
 sudo systemctl enable kubelet
 
 # Replace default pause image version in containerd with kubeadm suggested version
