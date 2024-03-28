@@ -49,10 +49,9 @@ sudo sysctl --system
 
 #sudo dracut -f
 
-
 sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
 sudo dnf install -y containerd
-containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/g;s|"/run/containerd/containerd.sock"|"/var/run/containerd/containerd.sock"|g' | sudo tee /etc/containerd/config.toml
+containerd config default | sed 's/pause:3.6/pause:3.9/g;s/SystemdCgroup = false/SystemdCgroup = true/g;s|"/run/containerd/containerd.sock"|"/var/run/containerd/containerd.sock"|g' | sudo tee /etc/containerd/config.toml
 sudo systemctl --now enable containerd
 
 # Install Kubernetes
@@ -67,17 +66,6 @@ gpgkey=https://pkgs.k8s.io/core:/stable:/${LATEST_RELEASE}/rpm/repodata/repomd.x
 EOF
 
 sudo dnf update
-
-sudo dnf install -y kubernetes-cni
-
-# Install CNI plugins - smash installed ones with the newer, last version
-DEST_DIR="/opt/cni/bin"
-#sudo mkdir -p $DEST_DIR
-LATEST_RELEASE=$(curl -s "https://api.github.com/repos/containernetworking/plugins/releases/latest" | awk -F'"' '/tag_name/{print $4}')
-OS="linux"
-ARCH="amd64"
-URL="https://github.com/containernetworking/plugins/releases/download/$LATEST_RELEASE/cni-plugins-$OS-$ARCH-$LATEST_RELEASE.tgz"
-wget -qO- "$URL" | sudo tar -C $DEST_DIR -xzvf -
 
 sudo dnf install -y kubectl kubeadm kubelet
 sudo systemctl enable kubelet
