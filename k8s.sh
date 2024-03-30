@@ -2,11 +2,11 @@
 
 KSHOST="k8s01"
 
-hostnamectl set-hostname $KSHOST
+sudo hostnamectl set-hostname $KSHOST
 
 IPADD=$(ip -o addr show up primary scope global |
-      while read -r num dev fam addr rest; do echo ${addr%/*}; done)
-echo "$IPADD $KSHOST"
+      while read -r num dev fam addr rest; do echo ${addr%/*}; done | head -1)
+echo "$IPADD $KSHOST" | sudo tee -a /etc/sudo
 
 # Update and upgrade packages
 sudo dnf update -y && sudo dnf upgrade -y
@@ -87,9 +87,25 @@ sudo systemctl --now enable containerd
 
 sudo mkdir -p /opt/k8s
 cat <<EOF | sudo tee /opt/k8s/kubeadm-config.yaml
----
-apiVersion: "kubeadm.k8s.io/v1beta3"
+apiVersion: kubeadm.k8s.io/v1beta3
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: abcdef.0123456789abcdef
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
 kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: $IPADD
+  bindPort: 6443
+nodeRegistration:
+  criSocket:  unix://var/run/containerd/containerd.sock
+  name: $KHOST
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
@@ -101,7 +117,7 @@ memorySwap:
 EOF
 
 # Temporary command ignoring warnings till I get a complete setup running with recommended specs
-sudo kubeadm init --control-plane-endpoint=$KSHOST --ignore-preflight-errors=NumCPU,Mem --config /opt/k8s/kubeadm-config.yaml
+sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config /opt/k8s/kubeadm-config.yaml
 
 mkdir -p "$HOME"/.kube
 sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
