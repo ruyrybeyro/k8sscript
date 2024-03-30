@@ -56,7 +56,7 @@ sudo sysctl --system
 # Install containerd
 sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
 sudo dnf install -y containerd
-containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/g;s|"/run/containerd/containerd.sock"|"/var/run/containerd/containerd.sock"|g' | sudo tee /etc/containerd/config.toml
+containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/g' | sudo tee /etc/containerd/config.toml
 
 # Install Kubernetes
 LATEST_RELEASE=$(curl -sSL https://dl.k8s.io/release/stable.txt | sed 's/\(\.[0-9]*\)\.[0-9]*/\1/')
@@ -84,7 +84,7 @@ sudo sed -i "s/\(sandbox_image = .*\:\)\(.*\)\"/\1$LATEST_PAUSE_VERSION\"/" $CON
 sudo systemctl --now enable containerd
 
 ## master specific stuff
-
+SOCK=unix://$(containerd config default | grep -Pzo '(?m)((^\[grpc\]\n)( +.+\n*)+)' | awk -F'"' '/ address/ { print $2 } ')
 sudo mkdir -p /opt/k8s
 cat <<EOF | sudo tee /opt/k8s/kubeadm-config.yaml
 apiVersion: kubeadm.k8s.io/v1beta3
@@ -101,7 +101,7 @@ localAPIEndpoint:
   advertiseAddress: $IPADD
   bindPort: 6443
 nodeRegistration:
-  criSocket:  unix://var/run/containerd/containerd.sock
+  criSocket: $SOCK
   name: $KHOST
   taints:
   - effect: NoSchedule
