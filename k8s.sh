@@ -6,7 +6,7 @@ sudo hostnamectl set-hostname $KSHOST
 
 IPADD=$(ip -o addr show up primary scope global |
       while read -r num dev fam addr rest; do echo ${addr%/*}; done | head -1)
-echo "$IPADD $KSHOST" | sudo tee -a /etc/sudo
+echo "$IPADD $KSHOST" | sudo tee -a /etc/hosts
 
 # Update and upgrade packages
 sudo dnf update -y && sudo dnf upgrade -y
