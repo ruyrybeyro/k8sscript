@@ -1,6 +1,12 @@
 #!/bin/bash -x
 
-#hostnamectl set-hostname k8s01
+KSHOST="k8s01"
+
+hostnamectl set-hostname $KSHOST
+
+IPADD=$(ip -o addr show up primary scope global |
+      while read -r num dev fam addr rest; do echo ${addr%/*}; done)
+echo "$IPADD $KSHOST"
 
 # Update and upgrade packages
 sudo dnf update -y && sudo dnf upgrade -y
@@ -95,7 +101,7 @@ memorySwap:
 EOF
 
 # Temporary command ignoring warnings till I get a complete setup running with recommended specs
-sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config /opt/k8s/kubeadm-config.yaml
+sudo kubeadm init --control-plane-endpoint=$KSHOST --ignore-preflight-errors=NumCPU,Mem --config /opt/k8s/kubeadm-config.yaml
 
 mkdir -p "$HOME"/.kube
 sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
