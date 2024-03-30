@@ -84,7 +84,7 @@ sudo sed -i "s/\(sandbox_image = .*\:\)\(.*\)\"/\1$LATEST_PAUSE_VERSION\"/" $CON
 sudo systemctl --now enable containerd
 
 ## master specific stuff
-SOCK=unix://$(containerd config default | grep -Pzo '(?m)((^\[grpc\]\n)( +.+\n*)+)' | awk -F'"' '/ address/ { print $2 } ')
+SOCK='unix://'$(containerd config default | grep -Pzo '(?m)((^\[grpc\]\n)( +.+\n*)+)' | awk -F'"' '/ address/ { print $2 } ')
 sudo mkdir -p /opt/k8s
 cat <<EOF | sudo tee /opt/k8s/kubeadm-config.yaml
 apiVersion: kubeadm.k8s.io/v1beta3
