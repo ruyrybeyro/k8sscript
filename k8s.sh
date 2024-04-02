@@ -9,7 +9,7 @@ IPADD=$(ip -o addr show up primary scope global |
 echo "$IPADD $KSHOST" | sudo tee -a /etc/hosts
 
 # Update and upgrade packages
-sudo dnf update -y && sudo dnf upgrade -y
+sudo dnf upgrade -y
 
 # Install necessary packages
 sudo dnf install -y jq wget curl tar vim firewalld yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils
