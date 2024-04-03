@@ -77,19 +77,28 @@ InstallK8s()
 {
     # Install Kubernetes
     LATEST_RELEASE=$(curl -sSL https://dl.k8s.io/release/stable.txt | sed 's/\(\.[0-9]*\)\.[0-9]*/\1/')
-    cat <<-EOF4 | sudo tee /etc/yum.repos.d/kubernetes.repo
+    cat <<-EOF3 | sudo tee /etc/yum.repos.d/kubernetes.repo
 	[kubernetes]
 	name=Kubernetes
 	baseurl=https://pkgs.k8s.io/core:/stable:/$LATEST_RELEASE/rpm/
 	enabled=1
 	gpgcheck=1
 	gpgkey=https://pkgs.k8s.io/core:/stable:/$LATEST_RELEASE/rpm/repodata/repomd.xml.key
-EOF4
+EOF3
 
     sudo dnf update -y
 
     sudo dnf install -y kubectl kubeadm kubelet kubernetes-cni
     sudo systemctl enable kubelet
+}
+
+LogLevelError()
+{
+    # change the log level to ERROR for containerd
+    cat <<EOF4 | sudo tee /etc/systemd/system/containerd.service.d/override.conf
+[Service]
+LogLevelMax=3
+EOF4
 }
 
 InterfaceWithcontainerd()
@@ -203,6 +212,7 @@ main()
     SystemSettings
     InstallContainerd
     InstallK8s
+    LogLevelError
     InterfaceWithcontainerd
     KubedamConfig
     LaunchMaster
