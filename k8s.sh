@@ -96,9 +96,9 @@ LogLevelError()
 {
     # it will have less logs
     sudo mkdir -p /etc/systemd/system.conf.d/
-    cat <<EOF4 | sudo tee /etc/systemd/system.conf.d/10-supress-loginfo.conf
-[Manager]
-LogLevel=warning
+    cat <<-EOF4 | sudo tee /etc/systemd/system.conf.d/10-supress-loginfo.conf
+	[Manager]
+	LogLevel=warning
 EOF4
     sudo kill -HUP 1
 }
