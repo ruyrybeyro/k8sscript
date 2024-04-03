@@ -118,7 +118,7 @@ InterfaceWithcontainerd()
     SOCK='unix://'$(containerd config default | grep -Pzo '(?m)((^\[grpc\]\n)( +.+\n*)+)' | awk -F'"' '/ address/ { print $2 } ')
 }
 
-KubedamConfig()
+KubeadmConfig()
 {
     sudo mkdir -p /opt/k8s
     cat <<EOF5 | sudo tee $KUBEADM_CONFIG
@@ -217,7 +217,7 @@ main()
     InstallContainerd
     InstallK8s
     InterfaceWithcontainerd
-    KubedamConfig
+    KubeadmConfig
     LaunchMaster
     FixRole
     CNI
