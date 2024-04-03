@@ -48,20 +48,20 @@ SystemSettings()
 {
     # overlay, br_netfilter and forwarding for k8s
     sudo mkdir -p /etc/modules-load.d/
-    cat <<-EOF | sudo tee /etc/modules-load.d/k8s.conf
+    cat <<-EOF1 | sudo tee /etc/modules-load.d/k8s.conf
 	overlay
 	br_netfilter
-	EOF
+EOF1
 
    sudo modprobe overlay
    sudo modprobe br_netfilter
 
    sudo mkdir -p /etc/sysctl.d/
-   cat <<-EOF | sudo tee /etc/sysctl.d/k8s.conf
+   cat <<-EOF2 | sudo tee /etc/sysctl.d/k8s.conf
 	net.bridge.bridge-nf-call-iptables  = 1
 	net.bridge.bridge-nf-call-ip6tables = 1
 	net.ipv4.ip_forward                 = 1
-	EOF
+EOF2
     sudo sysctl --system
 }
 
@@ -77,14 +77,14 @@ InstallK8s()
 {
     # Install Kubernetes
     LATEST_RELEASE=$(curl -sSL https://dl.k8s.io/release/stable.txt | sed 's/\(\.[0-9]*\)\.[0-9]*/\1/')
-    cat <<-EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+    cat <<-EOF4 | sudo tee /etc/yum.repos.d/kubernetes.repo
 	[kubernetes]
 	name=Kubernetes
 	baseurl=https://pkgs.k8s.io/core:/stable:/$LATEST_RELEASE/rpm/
 	enabled=1
 	gpgcheck=1
 	gpgkey=https://pkgs.k8s.io/core:/stable:/$LATEST_RELEASE/rpm/repodata/repomd.xml.key
-EOF
+EOF4
 
     sudo dnf update -y
 
@@ -109,7 +109,7 @@ InterfaceWithcontainerd()
 KubedamConfig()
 {
     sudo mkdir -p /opt/k8s
-    cat <<EOF | sudo tee $KUBEADM_CONFIG
+    cat <<EOF5 | sudo tee $KUBEADM_CONFIG
 apiVersion: kubeadm.k8s.io/v1beta3
 bootstrapTokens:
 - groups:
@@ -137,7 +137,7 @@ featureGates:
   NodeSwap: true
 memorySwap:
   swapBehavior: LimitedSwap
-EOF
+EOF5
 }
 
 LaunchMaster()
@@ -164,7 +164,7 @@ WaitForNodeUP()
 # fix multiple periodic log errors "User "system:kube-scheduler" cannot list resource..."
 FixRole()
 {
-    cat <<EOF | sudo tee /opt/k8s/kube-scheduler-role-binding.yaml
+    cat <<EOF6 | sudo tee /opt/k8s/kube-scheduler-role-binding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -190,7 +190,7 @@ subjects:
 - kind: ServiceAccount
   name: kube-scheduler
   namespace: kube-system
-EOF
+EOF6
     kubectl apply -f /opt/k8s/kube-scheduler-role-binding.yaml
 }
 
