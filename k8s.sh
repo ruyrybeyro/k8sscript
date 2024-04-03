@@ -94,6 +94,7 @@ EOF3
 
 LogLevelError()
 {
+    # make systemd only log warning level or greater
     # it will have less logs
     sudo mkdir -p /etc/systemd/system.conf.d/
     cat <<-EOF4 | sudo tee /etc/systemd/system.conf.d/10-supress-loginfo.conf
