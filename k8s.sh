@@ -172,6 +172,21 @@ WaitForNodeUP()
     kubectl get node -w | grep -m 1 "[^t]Ready"
 }
 
+DisplayMasterJoin()
+{
+    echo
+    echo "Run to add another control plane server"
+    kubeadm token create --print-join-command --certificate-key \
+$(kubeadm certs certificate-key)
+}
+
+DisplaySlaveJoin()
+{
+    echo
+    echo "Run to add another worker node"
+    kubeadm token create --print-join-command
+}
+
 # kube-scheduler: fix access to cluster certificates ConfigMap
 # fix multiple periodic log errors "User "system:kube-scheduler" cannot list resource..."
 FixRole()
@@ -222,6 +237,8 @@ main()
     FixRole
     CNI
     WaitForNodeUP
+    DisplayMasterJoin
+    DisplaySlaveJoin
 }
 
 # main stub will full arguments passing
