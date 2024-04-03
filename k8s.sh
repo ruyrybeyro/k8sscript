@@ -3,6 +3,7 @@
 KSHOST="k8s01"
 
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
+KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
 GetIP()
 {
@@ -109,7 +110,7 @@ InterfaceWithcontainerd()
 KubedamConfig()
 {
     sudo mkdir -p /opt/k8s
-    cat <<EOF | sudo tee /opt/k8s/kubeadm-config.yaml
+    cat <<EOF | sudo tee $KUBEADM_CONFIG
 apiVersion: kubeadm.k8s.io/v1beta3
 bootstrapTokens:
 - groups:
@@ -143,7 +144,7 @@ EOF
 LaunchMaster()
 {
     # Temporary command ignoring warnings till I get a complete setup running with recommended specs
-    sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config /opt/k8s/kubeadm-config.yaml
+    sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config $KUBEADM_CONFIG
 
     mkdir -p "$HOME"/.kube
     sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
@@ -160,6 +161,40 @@ WaitForNodeUP()
     kubectl get node -w | grep -m 1 "[^t]Ready"
 }
 
+# kube-scheduler: fix access to cluster certificates ConfigMap
+# fix multiple periodic log errors "User "system:kube-scheduler" cannot list resource..."
+FixRole()
+{
+    cat <<EOF | sudo tee /opt/k8s/kube-scheduler-role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kube-scheduler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-scheduler
+subjects:
+- kind: ServiceAccount
+  name: kube-scheduler
+  namespace: kube-system
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kube-scheduler-extension-apiserver-authentication-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+subjects:
+- kind: ServiceAccount
+  name: kube-scheduler
+  namespace: kube-system
+EOF
+    kubectl apply -f /opt/k8s/kube-scheduler-role-binding.yaml
+}
+
 main()
 {
     GetIP
@@ -172,6 +207,7 @@ main()
     InterfaceWithcontainerd
     KubedamConfig
     LaunchMaster
+    FixRole
     CNI
     WaitForNodeUP
 }
