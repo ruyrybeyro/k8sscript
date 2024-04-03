@@ -125,7 +125,7 @@ localAPIEndpoint:
   bindPort: 6443
 nodeRegistration:
   criSocket: $SOCK
-  name: $KHOST
+  name: $KSHOST
   taints:
   - effect: NoSchedule
     key: node-role.kubernetes.io/master
