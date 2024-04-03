@@ -94,10 +94,11 @@ EOF3
 
 LogLevelError()
 {
-    # change the log level to ERROR for containerd
-    cat <<EOF4 | sudo tee /etc/systemd/system/containerd.service.d/override.conf
-[Service]
-LogLevelMax=3
+    # it will have less logs upon reboot
+    mkdir -p /etc/systemd/system.conf.d/
+    cat <<EOF4 | sudo tee /etc/systemd/system.conf.d/10-supress-loginfo.conf
+[Manager]
+LogLevel=warning
 EOF4
 }
 
@@ -210,9 +211,9 @@ main()
     InstallOSPackages
     SetupFirewall
     SystemSettings
+    LogLevelError
     InstallContainerd
     InstallK8s
-    LogLevelError
     InterfaceWithcontainerd
     KubedamConfig
     LaunchMaster
