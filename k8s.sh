@@ -70,8 +70,8 @@ InstallContainerd()
     # Install containerd
     sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
     sudo dnf install -y containerd
-    echo "log_level = error" > $CONTAINERD_CONFIG
-    containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/g' | sudo tee -a $CONTAINERD_CONFIG 
+    #echo "log_level = error" > $CONTAINERD_CONFIG
+    containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/g' | sudo tee $CONTAINERD_CONFIG 
 }
 
 InstallK8s()
