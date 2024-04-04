@@ -4,7 +4,7 @@
 NODE="ControlPlane"
 
 # name of host
-KSHOST="k8s01"
+KSHOST="k8sm01"
 
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
