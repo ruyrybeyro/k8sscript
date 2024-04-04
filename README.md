@@ -1,6 +1,6 @@
 # k8sscript
 
-Spin up Kubernetes master node for Red Hat Linux family
+Spin up Kubernetes master and worker node for Red Hat Linux family
 
 for k8s > 1.29
 
