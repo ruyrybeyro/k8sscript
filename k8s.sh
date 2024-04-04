@@ -179,7 +179,7 @@ WaitForNodeUP()
 DisplayMasterJoin()
 {
     echo
-    echo "Run to add another control plane server"
+    echo "Run as root/sudo to add another control plane server"
     kubeadm token create --print-join-command --certificate-key \
 $(kubeadm certs certificate-key)
 }
@@ -187,7 +187,7 @@ $(kubeadm certs certificate-key)
 DisplaySlaveJoin()
 {
     echo
-    echo "Run to add another worker node"
+    echo "Run as root/sudo to add another worker node"
     kubeadm token create --print-join-command
 }
 
