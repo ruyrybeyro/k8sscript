@@ -1,10 +1,10 @@
 #!/bin/bash -x
 
 # can be ControlPlane or Worker
-NODE="Worker"
+NODE="ControlPlane"
 
 # name of host
-KSHOST="k8s02"
+KSHOST="k8s01"
 
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
