@@ -1,5 +1,9 @@
 #!/bin/bash -x
 
+# can be ControlPlane or Worker
+NODE="ControlPlane"
+
+# name of host
 KSHOST="k8s01"
 
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
@@ -232,6 +236,9 @@ main()
     InstallContainerd
     InstallK8s
     InterfaceWithcontainerd
+
+    [[ $NODE = "Worker" ]] && exit 0
+
     KubeadmConfig
     LaunchMaster
     FixRole
