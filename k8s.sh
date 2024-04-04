@@ -225,6 +225,15 @@ EOF6
     kubectl apply -f /opt/k8s/kube-scheduler-role-binding.yaml
 }
 
+HostsMessage()
+{
+    echo 
+    echo "Add to /etc/hosts of all other nodes"
+    echo "$IPADD $KSHOST"
+    echo
+    return 0
+}
+
 main()
 {
     GetIP
@@ -237,7 +246,11 @@ main()
     InstallK8s
     InterfaceWithcontainerd
 
-    [[ $NODE = "Worker" ]] && exit 0
+    if [[ $NODE = "Worker" ]]
+    then
+        HostsMessage
+        exit 0
+    fi
 
     KubeadmConfig
     LaunchMaster
@@ -246,6 +259,7 @@ main()
     WaitForNodeUP
     DisplayMasterJoin
     DisplaySlaveJoin
+    HostsMessage
 }
 
 # main stub will full arguments passing
