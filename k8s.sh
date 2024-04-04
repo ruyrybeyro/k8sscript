@@ -1,9 +1,5 @@
-#!/bin/bash -x
+#!/bin/bash
 
-# can be ControlPlane or Worker
-NODE="ControlPlane"
-
-# name of host
 KSHOST="k8s01"
 
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
@@ -178,16 +174,14 @@ WaitForNodeUP()
 
 DisplayMasterJoin()
 {
-    echo
-    echo "Run to add another control plane server"
+    echo "Run as root/sudo to add another control plane server"
     kubeadm token create --print-join-command --certificate-key \
 $(kubeadm certs certificate-key)
 }
 
 DisplaySlaveJoin()
 {
-    echo
-    echo "Run to add another worker node"
+    echo "Run as root/sudo to add another worker node"
     kubeadm token create --print-join-command
 }
 
@@ -236,9 +230,6 @@ main()
     InstallContainerd
     InstallK8s
     InterfaceWithcontainerd
-
-    [[ $NODE = "Worker" ]] && exit 0
-
     KubeadmConfig
     LaunchMaster
     FixRole
