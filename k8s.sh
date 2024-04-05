@@ -240,7 +240,7 @@ main()
 {
     if [[ -z "$NODE" ]] || [[ -z "$KSHOST" ]]
     then
-        echo "Edit script and fill in $NODE and $KSHOST"
+        echo 'Edit script and fill in $NODE and $KSHOST'
         exit 1
     fi
 
