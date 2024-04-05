@@ -236,6 +236,17 @@ HostsMessage()
     return 0
 }
 
+InstallHelm()
+{
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -s
+}
+
+Metrics()
+{
+    helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+    helm upgrade --install metrics-server metrics-server/metrics-server
+}
+
 main()
 {
     if [[ -z "$NODE" ]] || [[ -z "$KSHOST" ]]
@@ -265,8 +276,14 @@ main()
     FixRole
     CNI
     WaitForNodeUP
+
+    InstallHelm
+
+    Metrics
+
     DisplayMasterJoin
     DisplaySlaveJoin
+
     HostsMessage
 }
 
