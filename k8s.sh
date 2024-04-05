@@ -1,10 +1,12 @@
 #!/bin/bash -x
 
 # can be ControlPlane or Worker
-NODE="ControlPlane"
+#NODE="ControlPlane"
+#NODE="Worker"
 
-# name of host
-KSHOST="k8sm01"
+# FQDN name of node to be installed
+KSHOST=""
+#KSHOST="k8sm01"
 
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
@@ -236,6 +238,12 @@ HostsMessage()
 
 main()
 {
+    if [[ -z "$NODE" ]] || [[ -z "$KSHOST" ]]
+    then
+        echo "Edit script and fill in $NODE and $KSHOST"
+        exit 1
+    fi
+
     GetIP
     SetupNodeName
     InstallOSPackages
