@@ -14,14 +14,14 @@ KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 GetIP()
 {
     # try to get primary IP address
-    IPADD=$(ip -o addr show up primary scope global |
+    IPADDR=$(ip -o addr show up primary scope global |
       while read -r num dev fam addr rest; do echo ${addr%/*}; done | head -1)
 }
 
 SetupNodeName()
 {
     sudo hostnamectl set-hostname $KSHOST
-    echo "$IPADD $KSHOST" | sudo tee -a /etc/hosts
+    echo "$IPADDR $KSHOST" | sudo tee -a /etc/hosts
 }
 
 
@@ -124,29 +124,49 @@ InterfaceWithcontainerd()
     SOCK='unix://'$(containerd config default | grep -Pzo '(?m)((^\[grpc\]\n)( +.+\n*)+)' | awk -F'"' '/ address/ { print $2 } ')
 }
 
+# https://pkg.go.dev/k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3
 KubeadmConfig()
 {
     sudo mkdir -p /opt/k8s
     cat <<EOF5 | sudo tee $KUBEADM_CONFIG
 apiVersion: kubeadm.k8s.io/v1beta3
-bootstrapTokens:
-- groups:
-  - system:bootstrappers:kubeadm:default-node-token
-  token: abcdef.0123456789abcdef
-  ttl: 24h0m0s
-  usages:
-  - signing
-  - authentication
 kind: InitConfiguration
-localAPIEndpoint:
-  advertiseAddress: $IPADD
-  bindPort: 6443
+bootstrapTokens:
+- token: "9a08jv.c0izixklcxtmnze7"
+  description: "kubeadm bootstrap token"
+  ttl: "24h"
+  usages:
+  - authentication
+  - signing
+  groups:
+  - system:bootstrappers:kubeadm:default-node-token
 nodeRegistration:
-  criSocket: $SOCK
-  name: $KSHOST
+  name: "$KSHOST"
+  criSocket: "$SOCK"
   taints:
   - effect: NoSchedule
     key: node-role.kubernetes.io/master
+localAPIEndpoint:
+  advertiseAddress: "$IPADDR"
+  bindPort: 6443
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+etcd:
+  # one of local or external
+  local:
+    serverCertSANs:
+    -  "$KSHOST"
+    peerCertSANs:
+    - "$IPADDR"
+controlPlaneEndpoint: "$IPADDR:6443"
+apiServer:
+  extraArgs:
+    authorization-mode: "Node,RBAC"
+  certSANs:
+  - "$IPADDR"
+  - "$KSHOST"
+  timeoutForControlPlane: 4m0s
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
@@ -236,7 +256,7 @@ HostsMessage()
 {
     echo 
     echo "Add to /etc/hosts of all other nodes"
-    echo "$IPADD $KSHOST"
+    echo "$IPADDR $KSHOST"
     echo
     return 0
 }
@@ -249,6 +269,7 @@ InstallHelm()
 Metrics()
 {
     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+    kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
 }
 
 main()
@@ -262,7 +283,6 @@ main()
     GetIP
     SetupNodeName
     InstallOSPackages
-    InstallHelm
     SetupFirewall
     SystemSettings
     LogLevelError
@@ -275,6 +295,8 @@ main()
         HostsMessage
         exit 0
     fi
+
+    InstallHelm
 
     KubeadmConfig
     LaunchMaster
