@@ -170,7 +170,9 @@ LaunchMaster()
 
 CNI()
 {
-    kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+    #kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+    helm repo add cilium https://helm.cilium.io/
+    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=probe
 }
 
 WaitForNodeUP()
@@ -261,6 +263,7 @@ main()
     GetIP
     SetupNodeName
     InstallOSPackages
+    InstallHelm
     SetupFirewall
     SystemSettings
     LogLevelError
@@ -279,8 +282,6 @@ main()
     FixRole
     CNI
     WaitForNodeUP
-
-    InstallHelm
 
     Metrics
 
