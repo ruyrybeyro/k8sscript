@@ -149,6 +149,8 @@ nodeRegistration:
 localAPIEndpoint:
   advertiseAddress: "$IPADDR"
   bindPort: 6443
+skipPhases:
+- addon/kube-proxy
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
@@ -192,7 +194,11 @@ CNI()
 {
     #kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
     helm repo add cilium https://helm.cilium.io/
-    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=probe
+    helm install cilium cilium/cilium --version 1.15.3 \
+    --namespace kube-system \
+    --set kubeProxyReplacement=true \
+    --set k8sServiceHost=$IPADDR \
+    --set k8sServicePort=6443
 }
 
 WaitForNodeUP()
