@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # can be ControlPlane or Worker
 #NODE="ControlPlane"
@@ -207,7 +207,7 @@ DisplayMasterJoin()
     #kubeadm token create --print-join-command --certificate-key $(kubeadm certs certificate-key)
     CERTKEY=$(sudo kubeadm init phase upload-certs --upload-certs | tail -1)
     PRINT_JOIN=$(kubeadm token create --print-join-command)
-    echo "$PRINT_JOIN --control-plane --certificate-key $CERTKEY --cri-socket $SOCK"
+    echo "sudo $PRINT_JOIN --control-plane --certificate-key $CERTKEY --cri-socket $SOCK"
 }
 
 DisplaySlaveJoin()
@@ -215,7 +215,7 @@ DisplaySlaveJoin()
     echo
     echo "Run as root/sudo to add another worker node"
     #echo $(kubeadm token create --print-join-command) --cri-socket $SOCK 
-    echo "$PRINT_JOIN --cri-socket $SOCK"
+    echo "sudo $PRINT_JOIN --cri-socket $SOCK"
 }
 
 # kube-scheduler: fix access to cluster certificates ConfigMap
