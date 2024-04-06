@@ -24,3 +24,5 @@ $KSHOST with FQDN of node
 
 $NODE with ControlPlane or Worker
 
+Recommend VMs with at least 4GB disk free at /var +3.5GB of RAM
+
