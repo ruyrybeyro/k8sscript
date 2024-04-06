@@ -131,15 +131,6 @@ KubeadmConfig()
     cat <<EOF5 | sudo tee $KUBEADM_CONFIG
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: InitConfiguration
-bootstrapTokens:
-- token: "9a08jv.c0izixklcxtmnze7"
-  description: "kubeadm bootstrap token"
-  ttl: "24h"
-  usages:
-  - authentication
-  - signing
-  groups:
-  - system:bootstrappers:kubeadm:default-node-token
 nodeRegistration:
   name: "$KSHOST"
   criSocket: "$SOCK"
