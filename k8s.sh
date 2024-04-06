@@ -263,6 +263,12 @@ InstallHelm()
     curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -s
 }
 
+Installk9s()
+{
+    sudo dnf -y copr enable luminoso/k9s
+    sudo dnf -y install k9s
+}
+
 Metrics()
 {
     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
@@ -294,6 +300,8 @@ main()
     fi
 
     InstallHelm
+
+    Installk9s
 
     KubeadmConfig
     LaunchMaster
