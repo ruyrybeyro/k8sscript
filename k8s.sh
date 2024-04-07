@@ -316,7 +316,7 @@ main()
     InstallK8s
     InterfaceWithcontainerd
 
-    if [ $NODE = "Worker" ]
+    if [ $NODE = "worker" ]
     then
         HostsMessage
         exit 0
