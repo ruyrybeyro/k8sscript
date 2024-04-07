@@ -228,7 +228,6 @@ apiServer:
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
-address: $IPADDR
 cgroupDriver: systemd
 authentication:
   anonymous:
