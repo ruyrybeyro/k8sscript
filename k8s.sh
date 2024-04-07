@@ -28,7 +28,8 @@ DisableSELinux()
 GetIP()
 {
     # Get primary IP address
-    IPADDR=$(ip -o -4 addr list up primary scope global | awk '{print $4}' | cut -d "/" -f 1)
+    # Only get the first IP with "head -1", the second IP going by the current script will be of the Cilium interface
+    IPADDR=$(ip -o -4 addr list up primary scope global | awk '{print $4}' | cut -d "/" -f 1 | head -1)
 }
 
 SetupNodeName()
