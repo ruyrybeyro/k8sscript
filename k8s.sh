@@ -35,16 +35,16 @@ GetIP()
 SetupNodeName()
 {
     # Set hostname
-    sudo hostnamectl set-hostname $KSHOST
+    sudo hostnamectl set-hostname "$KSHOST"
     echo "$IPADDR $KSHOST" | sudo tee -a /etc/hosts
 }
 
 InstallVmWare()
 {
     sudo dnf -y install virt-what
-    if [[ $(sudo virt-what) = "vmware" ]]
+    if [ "$(sudo virt-what)" = "vmware" ]
     then
-        sudo rpm -e microcode_ctl $(rpm -q -a | grep firmware)
+        sudo rpm -e microcode_ctl "$(rpm -q -a | grep firmware)"
         sudo dnf -y install open-vm-tools
     fi
 }
@@ -158,7 +158,7 @@ InterfaceWithcontainerd()
 {
     # Replace default pause image version in containerd with kubeadm suggested version
     # However, the default containerd pause image version is supposed to be able to overwrite what kubeadm suggests
-    LATEST_PAUSE_VERSION=$(kubeadm config images list --kubernetes-version=$(kubeadm version -o short) | grep pause | cut -d ':' -f 2)
+    LATEST_PAUSE_VERSION=$(kubeadm config images list --kubernetes-version="$(kubeadm version -o short)" | grep pause | cut -d ':' -f 2)
 
     # Construct the full image name with registry prefix
     sudo sed -i "s/\(sandbox_image = .*\:\)\(.*\)\"/\1$LATEST_PAUSE_VERSION\"/" $CONTAINERD_CONFIG
@@ -233,7 +233,7 @@ CNI()
     helm repo add cilium https://helm.cilium.io/
 #     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=probe
     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true \
-    --set k8sServiceHost=$IPADDR \
+    --set k8sServiceHost="$IPADDR" \
     --set k8sServicePort=6443
 
 }
@@ -345,14 +345,14 @@ main()
     InstallK8s
     InterfaceWithcontainerd
 
-    if [ $NODE = "worker" ]
+    if [ "$NODE" = "worker" ]
     then
         HostsMessage
         exit 0
     fi
 
     InstallHelm
-    Installk9s()
+    Installk9s
 
     KubeadmConfig
     LaunchMaster
