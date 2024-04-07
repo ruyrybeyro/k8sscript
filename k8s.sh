@@ -5,32 +5,30 @@
 # NODE="worker"
 
 # FQDN name of node to be installed
-KSHOST=""
-#KSHOST="k8sm01"
+# KSHOST="k8sm01"
 
-# # ---
-# # Example utilising external variables ${node_name} and ${count}
-# NODE=${node_name}
-# COUNT=${count}
-#
-# KSHOST="k8s-$NODE-$COUNT"
-# # ---
+# ---
+# Example utilising external variables ${node_name} and ${count}
+NODE=${node_name}
+COUNT=${count}
+# #
+KSHOST="k8s-$NODE-$COUNT"
+# ---
 
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
-# DisableSELinux()
-# {
-#     # Disable SELinux
-#     sudo setenforce 0
-#     sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-# }
+DisableSELinux()
+{
+    # Disable SELinux
+    sudo setenforce 0
+    sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+}
 
 GetIP()
 {
     # Get primary IP address
-    IPADDR=$(ip -o addr show up primary scope global |
-      while read -r num dev fam addr rest; do echo ${addr%/*}; done | head -1)
+    IPADDR=$(ip -o -4 addr list up primary scope global | awk '{print $4}' | cut -d "/" -f 1)
 }
 
 SetupNodeName()
@@ -124,7 +122,8 @@ InstallContainerd()
 InstallK8s()
 {
     # Install Kubernetes
-    LATEST_RELEASE=$(curl -sSL https://dl.k8s.io/release/stable.txt | sed 's/\(\.[0-9]*\)\.[0-9]*/\1/')
+
+    LATEST_RELEASE=$(curl -sSL https://dl.k8s.io/release/stable.txt | sed "s/\(\.[0-9]*\)\.[0-9]*/\1/")
 
     cat <<EOF3 | sudo tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
@@ -232,7 +231,6 @@ CNI()
 {
     #kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
     helm repo add cilium https://helm.cilium.io/
-#     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=probe
     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true \
     --set k8sServiceHost="$IPADDR" \
     --set k8sServicePort=6443
@@ -332,7 +330,8 @@ main()
         exit 1
     fi
 
-#     DisableSELinux
+    DisableSELinux
+
     GetIP
     SetupNodeName
     InstallVmWare
