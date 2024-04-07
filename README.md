@@ -20,9 +20,10 @@ Cillium+eBPF
 
 For now, edit the script and fill in:
 
-$KSHOST with FQDN of node 
+$KSHOST with FQDN of node
 
-$NODE with ControlPlane or Worker
+$NODE with "controlplane" or "worker" (as examples) \
+Note that using upper-case letters in the FQDN (i.e. akin to "ControlPlane" or "Worker") for the machine might not work; currently non-reproducible issue of `etcd` complaining against an FQDN with the aforementioned (upper-case) characters.
 
 Recommend VMs with at least 4GB disk free at /var +3.5GB of RAM
 

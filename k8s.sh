@@ -1,25 +1,40 @@
-#!/bin/bash
+#!/bin/sh
 
-# can be ControlPlane or Worker
-#NODE="ControlPlane"
-#NODE="Worker"
+# Can be controlplane or worker
+# NODE="controlplane"
+# NODE="Worker"
 
 # FQDN name of node to be installed
 KSHOST=""
 #KSHOST="k8sm01"
 
+# # ---
+# # Example utilising external variables ${node_name} and ${count}
+# NODE=${node_name}
+# COUNT=${count}
+#
+# KSHOST="k8s-$NODE-$COUNT"
+# # ---
+
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
+# DisableSELinux()
+# {
+#     # Disable SELinux
+#     sudo setenforce 0
+#     sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+# }
+
 GetIP()
 {
-    # try to get primary IP address
-    IPADDR=$(ip -o addr show up primary scope global |
-      while read -r num dev fam addr rest; do echo ${addr%/*}; done | head -1)
+    # Get primary IP address
+    IPADDR=$(ip addr show dev eth0 | grep 'inet ' | awk '{print $2}' | cut -d '/' -f 1)
 }
 
 SetupNodeName()
 {
+    # Set hostname
     sudo hostnamectl set-hostname $KSHOST
     echo "$IPADDR $KSHOST" | sudo tee -a /etc/hosts
 }
@@ -70,7 +85,7 @@ SetupFirewall()
     sudo firewall-cmd --permanent --add-port=10255/tcp
     sudo firewall-cmd --permanent --add-port=10257/tcp
     sudo firewall-cmd --permanent --add-port=10259/tcp
-    sudo firewall-cmd --permanent --add-port=30000-32767/tcp 
+    sudo firewall-cmd --permanent --add-port=30000-32767/tcp
     sudo firewall-cmd --reload
 }
 
@@ -78,20 +93,21 @@ SystemSettings()
 {
     # overlay, br_netfilter and forwarding for k8s
     sudo mkdir -p /etc/modules-load.d/
-    cat <<-EOF1 | sudo tee /etc/modules-load.d/k8s.conf
-	overlay
-	br_netfilter
+    cat <<EOF1 | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
 EOF1
 
    sudo modprobe overlay
    sudo modprobe br_netfilter
 
    sudo mkdir -p /etc/sysctl.d/
-   cat <<-EOF2 | sudo tee /etc/sysctl.d/k8s.conf
-	net.bridge.bridge-nf-call-iptables  = 1
-	net.bridge.bridge-nf-call-ip6tables = 1
-	net.ipv4.ip_forward                 = 1
+   cat <<EOF2 | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
 EOF2
+
     sudo sysctl --system
 }
 
@@ -100,20 +116,20 @@ InstallContainerd()
     # Install containerd
     sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
     sudo dnf install -y containerd
-    containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/g' | sudo tee $CONTAINERD_CONFIG 
+    containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/g' | sudo tee $CONTAINERD_CONFIG
 }
 
 InstallK8s()
 {
     # Install Kubernetes
     LATEST_RELEASE=$(curl -sSL https://dl.k8s.io/release/stable.txt | sed 's/\(\.[0-9]*\)\.[0-9]*/\1/')
-    cat <<-EOF3 | sudo tee /etc/yum.repos.d/kubernetes.repo
-	[kubernetes]
-	name=Kubernetes
-	baseurl=https://pkgs.k8s.io/core:/stable:/$LATEST_RELEASE/rpm/
-	enabled=1
-	gpgcheck=1
-	gpgkey=https://pkgs.k8s.io/core:/stable:/$LATEST_RELEASE/rpm/repodata/repomd.xml.key
+    cat <<EOF3 | sudo tee /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://pkgs.k8s.io/core:/stable:/$LATEST_RELEASE/rpm/
+enabled=1
+gpgcheck=1
+gpgkey=https://pkgs.k8s.io/core:/stable:/$LATEST_RELEASE/rpm/repodata/repomd.xml.key
 EOF3
 
     sudo dnf update -y
@@ -127,10 +143,11 @@ LogLevelError()
     # make systemd only log warning level or greater
     # it will have less logs
     sudo mkdir -p /etc/systemd/system.conf.d/
-    cat <<-EOF4 | sudo tee /etc/systemd/system.conf.d/10-supress-loginfo.conf
-	[Manager]
-	LogLevel=warning
+    cat <<EOF4 | sudo tee /etc/systemd/system.conf.d/10-supress-loginfo.conf
+[Manager]
+LogLevel=warning
 EOF4
+
     sudo kill -HUP 1
 }
 
@@ -153,37 +170,39 @@ KubeadmConfig()
 {
     sudo mkdir -p /opt/k8s
     cat <<EOF5 | sudo tee $KUBEADM_CONFIG
+---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: InitConfiguration
 nodeRegistration:
-  name: "$KSHOST"
   criSocket: "$SOCK"
+  name: "$KSHOST"
   taints:
-  - effect: NoSchedule
-    key: node-role.kubernetes.io/master
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/master
 localAPIEndpoint:
   advertiseAddress: "$IPADDR"
   bindPort: 6443
 skipPhases:
-- addon/kube-proxy
+  - addon/kube-proxy
+
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
 etcd:
-  # one of local or external
   local:
     serverCertSANs:
-    -  "$KSHOST"
+      - "$KSHOST"
     peerCertSANs:
-    - "$IPADDR"
+      - "$IPADDR"
 controlPlaneEndpoint: "$IPADDR:6443"
 apiServer:
   extraArgs:
     authorization-mode: "Node,RBAC"
   certSANs:
-  - "$IPADDR"
-  - "$KSHOST"
+    - "$IPADDR"
+    - "$KSHOST"
   timeoutForControlPlane: 4m0s
+
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
@@ -209,11 +228,8 @@ CNI()
 {
     #kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
     helm repo add cilium https://helm.cilium.io/
-    helm install cilium cilium/cilium --version 1.15.3 \
-    --namespace kube-system \
-    --set kubeProxyReplacement=true \
-    --set k8sServiceHost=$IPADDR \
-    --set k8sServicePort=6443
+#     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=probe
+    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true
 }
 
 WaitForNodeUP()
@@ -235,7 +251,7 @@ DisplaySlaveJoin()
 {
     echo
     echo "Run as root/sudo to add another worker node"
-    #echo $(kubeadm token create --print-join-command) --cri-socket $SOCK 
+    #echo $(kubeadm token create --print-join-command) --cri-socket $SOCK
     echo "sudo $PRINT_JOIN --cri-socket $SOCK"
 }
 
@@ -244,6 +260,7 @@ DisplaySlaveJoin()
 FixRole()
 {
     cat <<EOF6 | sudo tee /opt/k8s/kube-scheduler-role-binding.yaml
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -253,12 +270,13 @@ roleRef:
   kind: ClusterRole
   name: system:kube-scheduler
 subjects:
-- kind: ServiceAccount
-  name: kube-scheduler
-  namespace: kube-system
+  - kind: ServiceAccount
+    name: kube-scheduler
+    namespace: kube-system
+
 ---
-kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
 metadata:
   name: kube-scheduler-extension-apiserver-authentication-reader
 roleRef:
@@ -266,16 +284,16 @@ roleRef:
   kind: Role
   name: extension-apiserver-authentication-reader
 subjects:
-- kind: ServiceAccount
-  name: kube-scheduler
-  namespace: kube-system
+  - kind: ServiceAccount
+    name: kube-scheduler
+    namespace: kube-system
 EOF6
     kubectl apply -f /opt/k8s/kube-scheduler-role-binding.yaml
 }
 
 HostsMessage()
 {
-    echo 
+    echo
     echo "Add to /etc/hosts of all other nodes"
     echo "$IPADDR $KSHOST"
     echo
@@ -287,12 +305,6 @@ InstallHelm()
     curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -s
 }
 
-Installk9s()
-{
-    sudo dnf -y copr enable luminoso/k9s
-    sudo dnf -y install k9s
-}
-
 Metrics()
 {
     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
@@ -301,12 +313,13 @@ Metrics()
 
 main()
 {
-    if [[ -z "$NODE" ]] || [[ -z "$KSHOST" ]]
+    if [ -z "$NODE" ] || [ -z "$KSHOST" ]
     then
         echo 'Edit script and fill in $NODE and $KSHOST'
         exit 1
     fi
 
+#     DisableSELinux
     GetIP
     SetupNodeName
     InstallVmWare
@@ -320,15 +333,13 @@ main()
     InstallK8s
     InterfaceWithcontainerd
 
-    if [[ $NODE = "Worker" ]]
+    if [ $NODE = "worker" ]
     then
         HostsMessage
         exit 0
     fi
 
     InstallHelm
-
-    Installk9s
 
     KubeadmConfig
     LaunchMaster
@@ -346,4 +357,3 @@ main()
 
 # main stub will full arguments passing
 main "$@"
-
