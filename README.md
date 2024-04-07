@@ -27,7 +27,10 @@ Note that using upper-case letters in the FQDN (i.e. akin to "ControlPlane" or "
 
 Recommend VMs with at least 4GB disk free at /var +3.5GB of RAM
 
-## [![Repography logo](https://images.repography.com/logo.svg)](https://repography.com) / Recent activity [![Time period](https://images.repography.com/36666788/ruyrybeyro/chrootvpn/recent-activity/LB9SXh03A1U_KKBzJVszTogsaTsDhqXweoD-J6-0bqU/mWvWwROxtYdvqNfahT1OfGUK8QixuHI75J4L2Hrb1I0_badge.svg)](https://repography.com)
-[![Timeline graph](https://images.repography.com/36666788/ruyrybeyro/chrootvpn/recent-activity/LB9SXh03A1U_KKBzJVszTogsaTsDhqXweoD-J6-0bqU/mWvWwROxtYdvqNfahT1OfGUK8QixuHI75J4L2Hrb1I0_timeline.svg)](https://github.com/ruyrybeyro/chrootvpn/commits)
-[![Trending topics](https://images.repography.com/36666788/ruyrybeyro/chrootvpn/recent-activity/LB9SXh03A1U_KKBzJVszTogsaTsDhqXweoD-J6-0bqU/mWvWwROxtYdvqNfahT1OfGUK8QixuHI75J4L2Hrb1I0_words.svg)](https://github.com/ruyrybeyro/chrootvpn/commits)
-[![Top contributors](https://images.repography.com/36666788/ruyrybeyro/chrootvpn/recent-activity/LB9SXh03A1U_KKBzJVszTogsaTsDhqXweoD-J6-0bqU/mWvWwROxtYdvqNfahT1OfGUK8QixuHI75J4L2Hrb1I0_users.svg)](https://github.com/ruyrybeyro/chrootvpn/graphs/contributors)
+
+## [![Repography logo](https://images.repography.com/logo.svg)](https://repography.com) / Recent activity [![Time period](https://images.repography.com/36666788/ruyrybeyro/k8sscript/recent-activity/EZJtwo3jB2EwKKnUEewLvL1dne-nTujKxziXYL-O0bU/tF14POcQca7kt6qHavYyeh4eHLBVJEoR_dLRGWThBcY_badge.svg)](https://repography.com)
+[![Timeline graph](https://images.repography.com/36666788/ruyrybeyro/k8sscript/recent-activity/EZJtwo3jB2EwKKnUEewLvL1dne-nTujKxziXYL-O0bU/tF14POcQca7kt6qHavYyeh4eHLBVJEoR_dLRGWThBcY_timeline.svg)](https://github.com/ruyrybeyro/k8sscript/commits)
+[![Trending topics](https://images.repography.com/36666788/ruyrybeyro/k8sscript/recent-activity/EZJtwo3jB2EwKKnUEewLvL1dne-nTujKxziXYL-O0bU/tF14POcQca7kt6qHavYyeh4eHLBVJEoR_dLRGWThBcY_words.svg)](https://github.com/ruyrybeyro/k8sscript/commits)
+[![Top contributors](https://images.repography.com/36666788/ruyrybeyro/k8sscript/recent-activity/EZJtwo3jB2EwKKnUEewLvL1dne-nTujKxziXYL-O0bU/tF14POcQca7kt6qHavYyeh4eHLBVJEoR_dLRGWThBcY_users.svg)](https://github.com/ruyrybeyro/k8sscript/graphs/contributors)
+
+
