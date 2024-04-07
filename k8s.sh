@@ -15,6 +15,8 @@ COUNT=${count}
 KSHOST="k8s-$NODE-$COUNT"
 # ---
 
+# AWS-specific user, considered default on most Linux AWS instances
+USER="ec2-user"
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
@@ -64,7 +66,14 @@ InstallOSPackages()
     sudo dnf upgrade -y
 
     # Install necessary packages
-    sudo dnf install -y jq wget curl tar vim firewalld yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils
+    sudo dnf install -y jq wget curl tar vim firewalld yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils epel-release
+
+    sudo yum update -y
+    sudo yum install -y haveged
+
+    # Start the "haveged" service to improve entropy in order to build certificates, just in case
+    sudo systemctl enable haveged.service
+    sudo chkconfig haveged on
 }
 
 KernelRebootWhenPanic()
@@ -219,6 +228,13 @@ apiServer:
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
+address: $IPADDR
+cgroupDriver: systemd
+authentication:
+  anonymous:
+    enabled: true
+authorization:
+  mode: AlwaysAllow
 failSwapOn: false
 featureGates:
   NodeSwap: true
@@ -232,9 +248,13 @@ LaunchMaster()
     # Temporary command ignoring warnings till I get a complete setup running with recommended specs
     sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config $KUBEADM_CONFIG
 
-    mkdir -p "$HOME"/.kube
-    sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
-    sudo chown "$(id -u)":"$(id -g)" "$HOME"/.kube/config
+    # Run as a normal, non-root user before configuring cluster
+#     mkdir -p "$HOME"/.kube
+#     sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
+#     sudo chown "$(id -u)":"$(id -g)" "$HOME"/.kube/config
+
+    # Alternatively, if one is a root user, run this:
+    export KUBECONFIG=/etc/kubernetes/admin.conf
 }
 
 CNI()
