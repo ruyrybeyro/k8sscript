@@ -8,23 +8,23 @@
 KSHOST=""
 #KSHOST="k8sm01"
 
-# ---
-# Example utilising external variables ${node_name} and ${count}
-NODE=${node_name}
-COUNT=${count}
-
-KSHOST="k8s-$NODE-$COUNT"
-# ---
+# # ---
+# # Example utilising external variables ${node_name} and ${count}
+# NODE=${node_name}
+# COUNT=${count}
+#
+# KSHOST="k8s-$NODE-$COUNT"
+# # ---
 
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
-DisableSELinux()
-{
-    # Disable SELinux
-    sudo setenforce 0
-    sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-}
+# DisableSELinux()
+# {
+#     # Disable SELinux
+#     sudo setenforce 0
+#     sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+# }
 
 GetIP()
 {
@@ -304,7 +304,7 @@ main()
         exit 1
     fi
 
-    DisableSELinux
+#     DisableSELinux
     GetIP
     SetupNodeName
     InstallVmWare
