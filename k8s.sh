@@ -18,6 +18,15 @@
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
+DontRunAsRoot()
+{
+    if [ $(id -u) -eq 0 ]
+    then
+        echo "This script is not meant to be run with sudo/root privileges"
+        exit 1
+    fi
+}
+
 # DisableSELinux()
 # {
 #     # Disable SELinux
@@ -28,8 +37,8 @@ KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 GetIP()
 {
     # Get primary IP address
-    # Only get the first IP with "head -1", the second IP going by the current script will be of the Cilium interface
-    IPADDR=$(ip -o -4 addr list up primary scope global | awk '{print $4}' | cut -d "/" -f 1 | head -1)
+    # Only get the first IP with "NR==1", the second IP by the current script will be the Cilium interface
+    IPADDR=$(ip -o addr list up primary scope global | awk 'NR==1 { sub(/\/.*/,""); print $4}')
 }
 
 SetupNodeName()
@@ -69,7 +78,7 @@ SetupWatchdog()
     sudo dnf -y install watchdog
     echo softdog | sudo tee /etc/modules-load.d/softdog.conf
     sudo modprobe softdog
-    sudo sed 's/#watchdog-device/watchdog-device/g;s/#file/file/g;s/#change/change/g' /etc/watchdog.conf
+    sudo sed -i 's/#watchdog-device/watchdog-device/g' /etc/watchdog.conf
     sudo systemctl --now enable watchdog.service
 }
 
@@ -230,11 +239,15 @@ LaunchMaster()
 
 CNI()
 {
-    #kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+    # kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+
     helm repo add cilium https://helm.cilium.io/
-    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true \
-    --set k8sServiceHost="$IPADDR" \
-    --set k8sServicePort=6443
+    # helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=probe
+    # Options for future use (ruyrybeyro/k8sscript:main) commit: 9c4bb11
+    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true
+    #
+    # --set k8sServiceHost="$IPADDR" \
+    # --set k8sServicePort=6443
 
 }
 
@@ -330,6 +343,8 @@ main()
         echo 'Edit script and fill in $NODE and $KSHOST'
         exit 1
     fi
+
+    DontRunAsRoot
 
 #     DisableSELinux
 
