@@ -102,6 +102,7 @@ EOF1
    sudo modprobe br_netfilter
 
    sudo mkdir -p /etc/sysctl.d/
+
    cat <<EOF2 | sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-iptables  = 1
 net.bridge.bridge-nf-call-ip6tables = 1
@@ -123,6 +124,7 @@ InstallK8s()
 {
     # Install Kubernetes
     LATEST_RELEASE=$(curl -sSL https://dl.k8s.io/release/stable.txt | sed 's/\(\.[0-9]*\)\.[0-9]*/\1/')
+
     cat <<EOF3 | sudo tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -143,6 +145,7 @@ LogLevelError()
     # make systemd only log warning level or greater
     # it will have less logs
     sudo mkdir -p /etc/systemd/system.conf.d/
+
     cat <<EOF4 | sudo tee /etc/systemd/system.conf.d/10-supress-loginfo.conf
 [Manager]
 LogLevel=warning
@@ -229,7 +232,10 @@ CNI()
     #kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
     helm repo add cilium https://helm.cilium.io/
 #     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=probe
-    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true
+    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true \
+    --set k8sServiceHost=$IPADDR \
+    --set k8sServicePort=6443
+
 }
 
 WaitForNodeUP()
@@ -305,6 +311,12 @@ InstallHelm()
     curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -s
 }
 
+Installk9s()
+{
+    sudo dnf -y copr enable luminoso/k9s
+    sudo dnf -y install k9s
+}
+
 Metrics()
 {
     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
@@ -340,6 +352,7 @@ main()
     fi
 
     InstallHelm
+    Installk9s()
 
     KubeadmConfig
     LaunchMaster
