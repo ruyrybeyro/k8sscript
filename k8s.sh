@@ -7,25 +7,25 @@
 # FQDN name of node to be installed
 # KSHOST="k8sm01"
 
-# # ---
-# # Example utilising external variables ${node_name} and ${count}
-# NODE=${node_name}
-# COUNT=${count}
-# # #
-# KSHOST="k8s-$NODE-$COUNT"
-# # ---
+# ---
+# Example utilising external variables ${node_name} and ${count}
+NODE=${node_name}
+COUNT=${count}
+# #
+KSHOST="k8s-$NODE-$COUNT"
+# ---
 
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
-DontRunAsRoot()
-{
-    if [ $(id -u) -eq 0 ]
-    then
-        echo "This script is not meant to be run with sudo/root privileges"
-        exit 1
-    fi
-}
+# DontRunAsRoot()
+# {
+#     if [ $(id -u) -eq 0 ]
+#     then
+#         echo "This script is not meant to be run with sudo/root privileges"
+#         exit 1
+#     fi
+# }
 
 # DisableSELinux()
 # {
@@ -344,7 +344,7 @@ main()
         exit 1
     fi
 
-    DontRunAsRoot
+#     DontRunAsRoot
 
 #     DisableSELinux
 
