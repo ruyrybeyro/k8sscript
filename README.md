@@ -18,7 +18,7 @@ containerd 1.6.28
 Calico
 Cillium+eBPF
 
-For now, edit the script and fill in:
+Use a user with sudo, edit the script and fill in:
 
 $KSHOST with FQDN of node
 
