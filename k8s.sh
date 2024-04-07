@@ -2,7 +2,7 @@
 
 # Can be controlplane or worker
 # NODE="controlplane"
-# NODE="Worker"
+# NODE="worker"
 
 # FQDN name of node to be installed
 KSHOST=""
