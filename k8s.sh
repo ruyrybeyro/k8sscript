@@ -69,7 +69,7 @@ SetupWatchdog()
     sudo dnf -y install watchdog
     echo softdog | sudo tee /etc/modules-load.d/softdog.conf
     sudo modprobe softdog
-    sudo sed 's/#watchdog-device/watchdog-device/g' /etc/watchdog.conf
+    sudo sed -i 's/#watchdog-device/watchdog-device/g' /etc/watchdog.conf
     sudo systemctl --now enable watchdog.service
 }
 
