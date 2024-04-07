@@ -164,7 +164,7 @@ EOF4
     sudo kill -HUP 1
 
     # fixing annoying RH 9 issue giving a lot of console error messages
-    chmod a+x /etc/rc.d/rc.local
+    sudo chmod a+x /etc/rc.d/rc.local 2> /dev/null
 }
 
 InterfaceWithcontainerd()
