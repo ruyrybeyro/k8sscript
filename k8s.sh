@@ -43,6 +43,11 @@ InstallOSPackages()
     sudo dnf install -y jq wget curl tar vim firewalld yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils
 }
 
+KernelRebootWhenPanic()
+{
+    sudo grubby --update-kernel=ALL --args="panic=60"
+}
+
 SetupFirewall()
 {
     # Prerequisites for kubeadm
@@ -296,6 +301,7 @@ main()
     SetupNodeName
     InstallVmWare
     InstallOSPackages
+    KernelRebootWhenPanic
     SetupFirewall
     SystemSettings
     LogLevelError
