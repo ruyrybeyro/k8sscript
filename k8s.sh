@@ -18,6 +18,9 @@
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
+# needed if running as root, or possibly some RedHat variant
+PATH="$PATH":/usr/local/bin
+
 DontRunAsRoot()
 {
     if [ $(id -u) -eq 0 ]
@@ -53,7 +56,7 @@ InstallVmWare()
     sudo dnf -y install virt-what
     if [ "$(sudo virt-what)" = "vmware" ]
     then
-        sudo rpm -e microcode_ctl "$(rpm -q -a | grep firmware)"
+        sudo rpm -e microcode_ctl $(rpm -q -a | grep firmware)
         sudo dnf -y install open-vm-tools
     fi
 }
