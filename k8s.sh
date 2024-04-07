@@ -48,6 +48,16 @@ KernelRebootWhenPanic()
     sudo grubby --update-kernel=ALL --args="panic=60"
 }
 
+# Reboot if hanged
+SetupWatchdog()
+{
+    sudo dnf -y install watchdog
+    echo softdog | sudo tee /etc/modules-load.d/softdog.conf
+    sudo modprobe softdog
+    sudo sed 's/#watchdog-device/watchdog-device/g;s/#file/file/g;s/#change/change/g' /etc/watchdog.conf
+    sudo systemctl --now enable watchdog.service
+}
+
 SetupFirewall()
 {
     # Prerequisites for kubeadm
@@ -302,6 +312,7 @@ main()
     InstallVmWare
     InstallOSPackages
     KernelRebootWhenPanic
+    SetupWatchdog
     SetupFirewall
     SystemSettings
     LogLevelError
