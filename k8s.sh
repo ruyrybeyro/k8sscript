@@ -38,6 +38,7 @@ DontRunAsRoot()
 GetIP()
 {
     # Get primary IP address
+    # Only get the first IP with "NR==1", the second IP by the current script will be the Cilium interface
     IPADDR=$(ip -o addr list up primary scope global | awk 'NR==1 { sub(/\/.*/,""); print $4}')
 }
 
