@@ -39,6 +39,15 @@ SetupNodeName()
     echo "$IPADDR $KSHOST" | sudo tee -a /etc/hosts
 }
 
+InstallVmWare()
+{
+    sudo dnf -y install virt-what
+    if [[ $(sudo virt-what) = "vmware" ]]
+    then
+        sudo rpm -e microcode_ctl $(rpm -q -a | grep firmware)
+        sudo dnf -y install open-vm-tools
+    fi
+}
 
 InstallOSPackages()
 {
@@ -298,6 +307,7 @@ main()
     DisableSELinux
     GetIP
     SetupNodeName
+    InstallVmWare
     InstallOSPackages
     SetupFirewall
     SystemSettings
