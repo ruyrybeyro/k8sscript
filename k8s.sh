@@ -29,8 +29,7 @@ KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 GetIP()
 {
     # Get primary IP address
-    IPADDR=$(ip -o addr show up primary scope global |
-      while read -r num dev fam addr rest; do echo ${addr%/*}; done | head -1)
+    IPADDR=$(ip -o addr list up primary scope global | awk 'NR==1 { sub(/\/.*/,""); print $4}')
 }
 
 SetupNodeName()
