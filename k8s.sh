@@ -19,6 +19,15 @@ KSHOST=""
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
+DontRunAsRoot()
+{
+    if [ $(id -u) -eq 0 ]
+    then
+        echo "This script is not meant to be run with sudo/root privileges"
+        exit 1
+    fi
+}
+
 # DisableSELinux()
 # {
 #     # Disable SELinux
@@ -332,6 +341,8 @@ main()
         echo 'Edit script and fill in $NODE and $KSHOST'
         exit 1
     fi
+
+    DontRunAsRoot
 
 #     DisableSELinux
     GetIP
