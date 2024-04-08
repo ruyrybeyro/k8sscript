@@ -20,21 +20,24 @@ USER="ec2-user"
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
-# DontRunAsRoot()
-# {
-#     if [ $(id -u) -eq 0 ]
-#     then
-#         echo "This script is not meant to be run with sudo/root privileges"
-#         exit 1
-#     fi
-# }
+# needed if running as root, or possibly some RedHat variant
+PATH="$PATH":/usr/local/bin
+export PATH
+DontRunAsRoot()
+{
+    if [ $(id -u) -eq 0 ]
+    then
+        echo "This script is not meant to be run with sudo/root privileges"
+        exit 1
+    fi
+}
 
-# DisableSELinux()
-# {
-#     # Disable SELinux
-#     sudo setenforce 0
-#     sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-# }
+DisableSELinux()
+{
+    # Disable SELinux
+    sudo setenforce 0
+    sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+}
 
 GetIP()
 {
@@ -55,7 +58,7 @@ InstallVmWare()
     sudo dnf -y install virt-what
     if [ "$(sudo virt-what)" = "vmware" ]
     then
-        sudo rpm -e microcode_ctl "$(rpm -q -a | grep firmware)"
+        sudo rpm -e microcode_ctl $(rpm -q -a | grep firmware)
         sudo dnf -y install open-vm-tools
     fi
 }
@@ -171,6 +174,9 @@ LogLevel=warning
 EOF4
 
     sudo kill -HUP 1
+
+    # fixing annoying RH 9 issue giving a lot of console error messages
+    sudo chmod a+x /etc/rc.d/rc.local 2> /dev/null
 }
 
 InterfaceWithcontainerd()
