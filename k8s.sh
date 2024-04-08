@@ -21,6 +21,7 @@ KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
 # needed if running as root, or possibly some RedHat variant
 PATH="$PATH":/usr/local/bin
+export PATH
 
 DontRunAsRoot()
 {
