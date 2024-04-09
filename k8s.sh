@@ -247,6 +247,17 @@ CNI()
 {
     #kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
+    # install Cilium CLI
+    sudo yum install go
+    CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+    GOOS=$(go env GOOS)
+    GOARCH=$(go env GOARCH)
+    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-${GOOS}-${GOARCH}.tar.gz{,.sha256sum}
+sha256sum --check cilium-${GOOS}-${GOARCH}.tar.gz.sha256sum
+    sudo tar -C /usr/local/bin -xzvf cilium-${GOOS}-${GOARCH}.tar.gz
+    rm cilium-${GOOS}-${GOARCH}.tar.gz{,.sha256sum}
+
+
     helm repo add cilium https://helm.cilium.io/
 #     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=probe
     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
