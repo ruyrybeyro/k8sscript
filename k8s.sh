@@ -17,8 +17,10 @@ COUNT=${count}
 KSHOST="k8s-$NODE-$COUNT"
 # ---
 
-# AWS-specific user, considered default on most Linux AWS instances
-USER="ec2-user"
+KADM_OPTIONS=""
+# uncomment for ignoring warnings if setup not running with recommended specs
+# KADM_OPTIONS="--ignore-preflight-errors=NumCPU,Mem"
+
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
@@ -210,6 +212,8 @@ nodeRegistration:
   taints:
     - effect: NoSchedule
       key: node-role.kubernetes.io/master
+    - effect: NoExecute
+      key: node.cilium.io/agent-not-ready
 localAPIEndpoint:
   advertiseAddress: "$IPADDR"
   bindPort: 6443
@@ -253,8 +257,11 @@ EOF5
 
 LaunchMaster()
 {
-    # Temporary command ignoring warnings till I get a complete setup running with recommended specs
-    sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config $KUBEADM_CONFIG
+    if ! sudo kubeadm init $KADM_OPTIONS --config $KUBEADM_CONFIG 
+    then
+        echo "failed to init k8s cluster" 
+        exit 1
+    fi
 
     # Run as a normal, non-root user before configuring cluster
 #     mkdir -p "$HOME"/.kube
@@ -274,17 +281,17 @@ CNI()
     CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
     GOOS=$(go env GOOS)
     GOARCH=$(go env GOARCH)
-    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"${CILIUM_CLI_VERSION}/cilium-${GOOS}-${GOARCH}".tar.gz
+    curl -sL --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"${CILIUM_CLI_VERSION}/cilium-${GOOS}-${GOARCH}".tar.gz
     sudo tar -C /usr/local/bin -xzvf cilium-"${GOOS}-${GOARCH}".tar.gz
     rm cilium-"${GOOS}-${GOARCH}".tar.gz
 
     # add the cilium repository
     helm repo add cilium https://helm.cilium.io/
     # get last cilium version
-    VERSION=$(helm search repo cilium/cilium | awk 'NR==2{print $2}')
-    helm install cilium cilium/cilium --version "$VERSION" --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
+    VERSION=$(helm search repo cilium/cilium | awk 'END {print $2}')
+    helm install cilium cilium/cilium --version $VERSION --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
 
-    cilium status —wait
+    cilium status
 }
 
 WaitForNodeUP()
