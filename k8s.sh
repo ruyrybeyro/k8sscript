@@ -262,6 +262,7 @@ sha256sum --check cilium-${GOOS}-${GOARCH}.tar.gz.sha256sum
 #     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=probe
     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
 
+    cilium status —wait
 }
 
 WaitForNodeUP()
