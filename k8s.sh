@@ -200,6 +200,8 @@ nodeRegistration:
   taints:
     - effect: NoSchedule
       key: node-role.kubernetes.io/master
+    - effect: NoExecute
+      key: node.cilium.io/agent-not-ready
 localAPIEndpoint:
   advertiseAddress: "$IPADDR"
   bindPort: 6443
