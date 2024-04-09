@@ -261,7 +261,9 @@ CNI()
 
     helm repo add cilium https://helm.cilium.io/
 
-    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
+    # get last cilium version
+    VERSION=$(helm search repo cilium/cilium | awk 'NR==2{print $2}')
+    helm install cilium cilium/cilium --version $VERSION --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
 
     cilium status —wait
 }
