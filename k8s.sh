@@ -240,7 +240,11 @@ EOF5
 LaunchMaster()
 {
     # Temporary command ignoring warnings till I get a complete setup running with recommended specs
-    sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config $KUBEADM_CONFIG
+    if ! sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config $KUBEADM_CONFIG 
+    then
+        echo "failed to init k8s cluster" 
+        exit 1
+    fi
 
     mkdir -p "$HOME"/.kube
     sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
