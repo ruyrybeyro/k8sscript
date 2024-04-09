@@ -274,21 +274,15 @@ CNI()
     CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
     GOOS=$(go env GOOS)
     GOARCH=$(go env GOARCH)
+    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"${CILIUM_CLI_VERSION}/cilium-${GOOS}-${GOARCH}".tar.gz
+    sudo tar -C /usr/local/bin -xzvf cilium-"${GOOS}-${GOARCH}".tar.gz
+    rm cilium-"${GOOS}-${GOARCH}".tar.gz
 
-#     Attempting to stay POSIX-compatible
-#     curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"$CILIUM_CLI_VERSION/cilium-$GOOS-$GOARCH".tar.gz{,.sha256sum}
-    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"$CILIUM_CLI_VERSION/cilium-$GOOS-$GOARCH".tar.gz
-    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"$CILIUM_CLI_VERSION/cilium-$GOOS-$GOARCH".tar.gz.sha256sum
-
-    sha256sum --check cilium-"$GOOS-$GOARCH".tar.gz.sha256sum
-    sudo tar -C /usr/local/bin -xzvf cilium-"$GOOS-$GOARCH".tar.gz
-    rm cilium-"$GOOS-$GOARCH".tar.gz cilium-"$GOOS-$GOARCH".tar.gz.sha256sum
-
-
-#   add the cilium repository
+    # add the cilium repository
     helm repo add cilium https://helm.cilium.io/
-#   sample command to dynamically get latest cilium cli release from helm: helm search repo cilium | awk 'NR==2{print $2}'
-    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
+    # get last cilium version
+    VERSION=$(helm search repo cilium/cilium | awk 'NR==2{print $2}')
+    helm install cilium cilium/cilium --version "$VERSION" --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
 
     cilium status —wait
 }
