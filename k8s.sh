@@ -265,7 +265,7 @@ CNI()
     VERSION=$(helm search repo cilium/cilium | awk 'END {print $2}')
     helm install cilium cilium/cilium --version $VERSION --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
 
-    cilium status —wait
+    cilium status 
 }
 
 WaitForNodeUP()
