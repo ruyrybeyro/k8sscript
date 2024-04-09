@@ -248,7 +248,7 @@ CNI()
     #kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
     # install Cilium CLI
-    sudo yum install go
+    sudo dnf -y install go
     CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
     GOOS=$(go env GOOS)
     GOARCH=$(go env GOARCH)
