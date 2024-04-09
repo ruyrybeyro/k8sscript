@@ -27,7 +27,7 @@ PATH="$PATH":/usr/local/bin
 export PATH
 DontRunAsRoot()
 {
-    if [ $(id -u) -eq 0 ]
+    if [ "$(id -u)" -eq 0 ]
     then
         echo "This script is not meant to be run with sudo/root privileges"
         exit 1
@@ -61,7 +61,7 @@ InstallVmWare()
     sudo dnf -y install virt-what
     if [ "$(sudo virt-what)" = "vmware" ]
     then
-        sudo rpm -e microcode_ctl $(rpm -q -a | grep firmware)
+        sudo rpm -e microcode_ctl "$(rpm -q -a | grep firmware)"
         sudo dnf -y install open-vm-tools
     fi
 }
@@ -274,9 +274,9 @@ CNI()
     CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
     GOOS=$(go env GOOS)
     GOARCH=$(go env GOARCH)
-    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"${CILIUM_CLI_VERSION}/cilium-${GOOS}-${GOARCH}".tar.gz
-    sudo tar -C /usr/local/bin -xzvf cilium-"${GOOS}-${GOARCH}".tar.gz
-    rm cilium-"${GOOS}-${GOARCH}".tar.gz
+    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"$CILIUM_CLI_VERSION/cilium-$GOOS-$GOARCH".tar.gz
+    sudo tar -C /usr/local/bin -xzvf cilium-"$GOOS-$GOARCH".tar.gz
+    rm cilium-"$GOOS-$GOARCH".tar.gz
 
     # add the cilium repository
     helm repo add cilium https://helm.cilium.io/
