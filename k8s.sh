@@ -6,7 +6,8 @@
 
 # FQDN name of node to be installed
 KSHOST=""
-#KSHOST="k8sm01"
+#KSHOST="k8sm01" # example Control Plane node
+#KSHOST="k8sw01" # example Worker node
 
 # # ---
 # # Example utilising external variables ${node_name} and ${count}
@@ -52,6 +53,7 @@ SetupNodeName()
     echo "$IPADDR $KSHOST" | sudo tee -a /etc/hosts
 }
 
+# If a VmWare VM, delete firmware, install open-vm-tools
 InstallVmWare()
 {
     sudo dnf -y install virt-what
