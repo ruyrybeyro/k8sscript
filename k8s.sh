@@ -274,10 +274,15 @@ CNI()
     CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
     GOOS=$(go env GOOS)
     GOARCH=$(go env GOARCH)
-    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"${CILIUM_CLI_VERSION}/cilium-${GOOS}-${GOARCH}".tar.gz{,.sha256sum}
-sha256sum --check cilium-"${GOOS}-${GOARCH}".tar.gz.sha256sum
-    sudo tar -C /usr/local/bin -xzvf cilium-"${GOOS}-${GOARCH}".tar.gz
-    rm cilium-"${GOOS}-${GOARCH}".tar.gz{,.sha256sum}
+
+#     Attempting to stay POSIX-compatible
+#     curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"$CILIUM_CLI_VERSION/cilium-$GOOS-$GOARCH".tar.gz{,.sha256sum}
+    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"$CILIUM_CLI_VERSION/cilium-$GOOS-$GOARCH".tar.gz
+    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"$CILIUM_CLI_VERSION/cilium-$GOOS-$GOARCH".tar.gz.sha256sum
+
+    sha256sum --check cilium-"$GOOS-$GOARCH".tar.gz.sha256sum
+    sudo tar -C /usr/local/bin -xzvf cilium-"$GOOS-$GOARCH".tar.gz
+    rm cilium-"$GOOS-$GOARCH".tar.gz cilium-"$GOOS-$GOARCH".tar.gz.sha256sum
 
 
     helm repo add cilium https://helm.cilium.io/
@@ -357,6 +362,13 @@ HostsMessage()
 InstallHelm()
 {
     curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -s
+
+    # Add the stable repository
+    helm repo add stable https://charts.helm.sh/stable
+    # Add the cilium repository
+    helm repo add cilium https://helm.cilium.io/
+    # Update your repositories
+    helm repo update
 }
 
 Installk9s()
