@@ -285,6 +285,7 @@ CNI()
     rm cilium-"$GOOS-$GOARCH".tar.gz cilium-"$GOOS-$GOARCH".tar.gz.sha256sum
 
 
+#   add the cilium repository
     helm repo add cilium https://helm.cilium.io/
 #   sample command to dynamically get latest cilium cli release from helm: helm search repo cilium | awk 'NR==2{print $2}'
     helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
@@ -363,13 +364,6 @@ HostsMessage()
 InstallHelm()
 {
     curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -s
-
-    # Add the stable repository
-    helm repo add stable https://charts.helm.sh/stable
-    # Add the cilium repository
-    helm repo add cilium https://helm.cilium.io/
-    # Update your repositories
-    helm repo update
 }
 
 Installk9s()
