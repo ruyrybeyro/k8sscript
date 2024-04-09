@@ -5,7 +5,9 @@
 # NODE="worker"
 
 # FQDN name of node to be installed
-# KSHOST="k8sm01"
+KSHOST=""
+#KSHOST="k8sm01" # example Control Plane node
+#KSHOST="k8sw01" # example Worker node
 
 # ---
 # Example utilising external variables ${node_name} and ${count}
@@ -53,6 +55,7 @@ SetupNodeName()
     echo "$IPADDR $KSHOST" | sudo tee -a /etc/hosts
 }
 
+# If a VmWare VM, delete firmware, install open-vm-tools
 InstallVmWare()
 {
     sudo dnf -y install virt-what
@@ -266,14 +269,21 @@ CNI()
 {
     # kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
-    helm repo add cilium https://helm.cilium.io/
-    # helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=probe
-    # Options for future use (ruyrybeyro/k8sscript:main) commit: 9c4bb11
-    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true
-    #
-    # --set k8sServiceHost="$IPADDR" \
-    # --set k8sServicePort=6443
+    # install Cilium CLI
+    sudo dnf -y install go
+    CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+    GOOS=$(go env GOOS)
+    GOARCH=$(go env GOARCH)
+    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"${CILIUM_CLI_VERSION}/cilium-${GOOS}-${GOARCH}".tar.gz{,.sha256sum}
+sha256sum --check cilium-"${GOOS}-${GOARCH}".tar.gz.sha256sum
+    sudo tar -C /usr/local/bin -xzvf cilium-"${GOOS}-${GOARCH}".tar.gz
+    rm cilium-"${GOOS}-${GOARCH}".tar.gz{,.sha256sum}
 
+
+    helm repo add cilium https://helm.cilium.io/
+    helm install cilium cilium/cilium --version 1.15.3 --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
+
+    cilium status —wait
 }
 
 WaitForNodeUP()
