@@ -17,6 +17,10 @@ KSHOST=""
 # KSHOST="k8s-$NODE-$COUNT"
 # # ---
 
+KADM_OPTIONS=""
+#  uncomment for ignoring warnings if setup not running with recommended specs
+#KADM_OPTIONS="--ignore-preflight-errors=NumCPU,Mem"
+
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
@@ -239,8 +243,7 @@ EOF5
 
 LaunchMaster()
 {
-    # Temporary command ignoring warnings till I get a complete setup running with recommended specs
-    if ! sudo kubeadm init --ignore-preflight-errors=NumCPU,Mem --config $KUBEADM_CONFIG 
+    if ! sudo kubeadm init $KADM_OPTIONS --config $KUBEADM_CONFIG 
     then
         echo "failed to init k8s cluster" 
         exit 1
