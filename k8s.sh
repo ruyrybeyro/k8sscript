@@ -129,7 +129,7 @@ SetupFirewall()
         # API server
         sudo firewall-cmd --permanent --add-port=6443/tcp
         # etcd server client API
-        sudo firewall-cmd --permanent --add-port=2379-2380/tcp 
+        sudo firewall-cmd --permanent --add-port=2379-2380/tcp
         # Kubelet API
         sudo firewall-cmd --permanent --add-port=10250-10252/tcp
         # kubelet API server for read-only access with no authentication
@@ -152,7 +152,7 @@ SetupFirewall()
         sudo firewall-cmd --permanent --add-port=4250/tcp
         # VXLAN overlay
         sudo firewall-cmd --permanent --add-port=8472/udp
-        # cilium-agent Prometheus 
+        # cilium-agent Prometheus
         sudo firewall-cmd --permanent --add-port=9962-9964/tcp
         # WireGuard encryption tunnel endpoint
         sudo firewall-cmd --permanent --add-port=51871/udp
@@ -316,8 +316,7 @@ LaunchMaster()
 #     sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
 #     sudo chown "$(id -u $USER)":"$(id -g $USER)" "$HOME"/.kube/config
 
-#     USER="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
-    USER=""
+    USER="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
     HOME_DIR=$(getent passwd "$USER" | awk -F ':' '{print $6}')
     mkdir -p "$HOME_DIR"/.kube/
     cp -f /etc/kubernetes/admin.conf "$HOME_DIR"/.kube/config
