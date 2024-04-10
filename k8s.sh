@@ -76,7 +76,12 @@ InstallOSPackages()
     sudo dnf upgrade -y
 
     # Install necessary packages
-    sudo dnf install -y jq wget curl tar vim firewalld yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils
+    sudo dnf install -y jq wget curl tar vim yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils
+
+    if [ FIREWALL != "no ]
+    then
+        sudo dnf install -y firewalld
+    fi
 }
 
 KernelRebootWhenPanic()
@@ -98,6 +103,8 @@ SetupFirewall()
 {
     if [ FIREWALL = "no" ]
     then
+        sudo systemctl stop firewalld
+        sudo systemctl disable firewalld
         echo "no firewall rules applied"
         return
     fi
@@ -105,7 +112,7 @@ SetupFirewall()
     # Prerequisites for kubeadm
     sudo systemctl --now enable firewalld
 
-    firewall-cmd --permanent --zone=trusted --add-interface=lo
+    sudo firewall-cmd --permanent --zone=trusted --add-interface=lo
 
     # API server
     sudo firewall-cmd --permanent --add-port=6443/tcp
