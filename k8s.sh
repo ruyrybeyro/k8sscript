@@ -39,8 +39,7 @@ DontRunAsRoot()
 {
     if [ "$(id -u)" -eq 0 ]
     then
-        echo "This script is not meant to be run with sudo/root privileges"
-        exit 1
+        echo "For better security, do not run as root" 2> /dev/null
     fi
 }
 
