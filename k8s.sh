@@ -78,7 +78,7 @@ InstallOSPackages()
     # Install necessary packages
     sudo dnf install -y jq wget curl tar vim yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils
 
-    if [ FIREWALL != "no ]
+    if [ $FIREWALL != "no" ]
     then
         sudo dnf install -y firewalld
     fi
@@ -101,7 +101,7 @@ SetupWatchdog()
 
 SetupFirewall()
 {
-    if [ FIREWALL = "no" ]
+    if [ $FIREWALL = "no" ]
     then
         sudo systemctl stop firewalld
         sudo systemctl disable firewalld
