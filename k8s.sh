@@ -17,7 +17,7 @@ KSHOST=""
 # KSHOST="k8s-$NODE-$COUNT"
 # # ---
 
-Firewall="no"
+FIREWALL="no"
 
 KADM_OPTIONS=""
 #  uncomment for ignoring warnings if setup not running with recommended specs
@@ -96,7 +96,7 @@ SetupWatchdog()
 
 SetupFirewall()
 {
-    if [ Firewall = "no" ]
+    if [ FIREWALL = "no" ]
     then
         echo "no firewall rules applied"
         return
@@ -113,6 +113,7 @@ SetupFirewall()
     sudo firewall-cmd --permanent --add-port=2379-2380/tcp 
     # Kubelet API
     sudo firewall-cmd --permanent --add-port=10250-10252/tcp
+    # kubelet API server for read-only access with no authentication
     sudo firewall-cmd --permanent --add-port=10255/tcp
     # kube-controller-manager
     sudo firewall-cmd --permanent --add-port=10257/tcp
