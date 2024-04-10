@@ -310,11 +310,18 @@ LaunchMaster()
         exit 1
     fi
 
-    USER="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
     # Run as a normal, non-root user before configuring cluster
-    mkdir -p "$HOME"/.kube
-    sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
-    sudo chown "$(id -u $USER)":"$(id -g $USER)" "$HOME"/.kube/config
+
+#     mkdir -p "$HOME"/.kube
+#     sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
+#     sudo chown "$(id -u $USER)":"$(id -g $USER)" "$HOME"/.kube/config
+
+    USER="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
+    HOME_DIR=$(getent passwd "$USER" | awk -F ':' '{print $6}')
+    mkdir -p "$HOME_DIR"/.kube/
+    cp -f /etc/kubernetes/admin.conf "$HOME_DIR"/.kube/config
+    chown "$(id -u $USER)":"$(id -g $USER)" "$HOME_DIR"/.kube/config
+    export KUBECONFIG="$HOME_DIR"/.kube/config
 
 #    # Alternatively, if one is a root user, run this:
 #     export KUBECONFIG=/etc/kubernetes/admin.conf
