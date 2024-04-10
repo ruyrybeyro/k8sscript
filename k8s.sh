@@ -13,9 +13,9 @@ KSHOST=""
 #KSHOST="k8sw01" # example Worker node
 
 # Example utilising external variables ${node_name} and ${count}
-NODE=${node_name}
-COUNT=${count}
-KSHOST="k8s-$NODE-$COUNT"
+# NODE=${node_name}
+# COUNT=${count}
+# KSHOST="k8s-$NODE-$COUNT"
 
 # ----------------
 # VARIABLES
