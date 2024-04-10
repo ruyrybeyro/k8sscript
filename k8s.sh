@@ -443,7 +443,7 @@ main()
         exit 1
     fi
 
-#     DontRunAsRoot
+    DontRunAsRoot
 
 #     DisableSELinux
 
