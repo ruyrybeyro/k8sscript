@@ -316,7 +316,8 @@ LaunchMaster()
 #     sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
 #     sudo chown "$(id -u $USER)":"$(id -g $USER)" "$HOME"/.kube/config
 
-    USER="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
+#     USER="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
+    USER=""
     HOME_DIR=$(getent passwd "$USER" | awk -F ':' '{print $6}')
     mkdir -p "$HOME_DIR"/.kube/
     cp -f /etc/kubernetes/admin.conf "$HOME_DIR"/.kube/config
