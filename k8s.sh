@@ -17,6 +17,8 @@ KSHOST=""
 # KSHOST="k8s-$NODE-$COUNT"
 # # ---
 
+Firewall="no"
+
 KADM_OPTIONS=""
 #  uncomment for ignoring warnings if setup not running with recommended specs
 #KADM_OPTIONS="--ignore-preflight-errors=NumCPU,Mem"
@@ -94,17 +96,47 @@ SetupWatchdog()
 
 SetupFirewall()
 {
+    if [ Firewall = "no" ]
+    then
+        echo "no firewall rules applied"
+        return
+    fi
+
     # Prerequisites for kubeadm
     sudo systemctl --now enable firewalld
+
+    firewall-cmd --permanent --zone=trusted --add-interface=lo
+
+    # API server
     sudo firewall-cmd --permanent --add-port=6443/tcp
-    sudo firewall-cmd --permanent --add-port=2379-2380/tcp
-    sudo firewall-cmd --permanent --add-port=10250/tcp
-    sudo firewall-cmd --permanent --add-port=10251/tcp
-    sudo firewall-cmd --permanent --add-port=10252/tcp
+    # etcd server client API
+    sudo firewall-cmd --permanent --add-port=2379-2380/tcp 
+    # Kubelet API
+    sudo firewall-cmd --permanent --add-port=10250-10252/tcp
     sudo firewall-cmd --permanent --add-port=10255/tcp
+    # kube-controller-manager
     sudo firewall-cmd --permanent --add-port=10257/tcp
+    # kube-scheduler
     sudo firewall-cmd --permanent --add-port=10259/tcp
+    # NodePort services
     sudo firewall-cmd --permanent --add-port=30000-32767/tcp
+
+    # https://docs.cilium.io/en/stable/operations/system_requirements/
+    # health checks
+    sudo firewall-cmd --permanent --add-port=4240/tcp
+    # Hubble server
+    sudo firewall-cmd --permanent --add-port=4244/tcp
+    # Hubble relay
+    sudo firewall-cmd --permanent --add-port=4245/tcp
+    # Mutual Authentication port
+    sudo firewall-cmd --permanent --add-port=4250/tcp
+    # VXLAN overlay
+    sudo firewall-cmd --permanent --add-port=8472/udp
+    # cilium-agent Prometheus 
+    sudo firewall-cmd --permanent --add-port=9962-9964/tcp
+    # WireGuard encryption tunnel endpoint
+    sudo firewall-cmd --permanent --add-port=51871/udp
+    
     sudo firewall-cmd --reload
 }
 
