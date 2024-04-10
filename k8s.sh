@@ -322,7 +322,7 @@ LaunchMaster()
     mkdir -p "$HOME_DIR"/.kube/
     cp -f /etc/kubernetes/admin.conf "$HOME_DIR"/.kube/config
     chown "$(id -u $USER)":"$(id -g $USER)" "$HOME_DIR"/.kube/config
-    export KUBECONFIG="$HOME_DIR"/.kube/config
+    #export KUBECONFIG="$HOME_DIR"/.kube/config
 
 #    # Alternatively, if one is a root user, run this:
 #     export KUBECONFIG=/etc/kubernetes/admin.conf
