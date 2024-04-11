@@ -315,8 +315,8 @@ LaunchMaster()
 #     sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
 #     sudo chown "$(id -u $ACTOR)":"$(id -g $ACTOR)" "$HOME"/.kube/config
 
-    ACTOR="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
-#     ACTOR=id -un # Get user/actor running the script
+#     ACTOR="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
+    ACTOR=$(id -un) # Get user/actor running the script
 
     HOME_DIR=$(getent passwd "$ACTOR" | awk -F ':' '{print $6}')
     mkdir -p "$HOME_DIR"/.kube/
