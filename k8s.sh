@@ -25,6 +25,8 @@ FIREWALL="no"
 # change for false for control plane to run pods or single node cluster
 SCHEDULE_TAINT="true"
 
+#ACTOR="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
+
 KADM_OPTIONS=""
 # uncomment for ignoring warnings if setup not running with recommended specs
 KADM_OPTIONS="--ignore-preflight-errors=NumCPU,Mem"
@@ -313,6 +315,19 @@ memorySwap:
 EOF7
 }
 
+
+KubeConfig()
+{
+    HOME_DIR=$(getent passwd "$1" | awk -F ':' '{print $6}')
+    mkdir -p "$HOME_DIR"/.kube/
+    cp -f /etc/kubernetes/admin.conf "$HOME_DIR"/.kube/config
+    chown "$(id -u $1)":"$(id -g $1)" "$HOME_DIR"/.kube
+    chown "$(id -u $1)":"$(id -g $1)" "$HOME_DIR"/.kube/config
+
+#   https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/#append-home-kube-config-to-your-kubeconfig-environment-variable
+    echo "$KUBECONFIG" | grep -q ".*$HOME_DIR\/.kube\/config.*" || export KUBECONFIG="$KUBECONFIG":"$HOME_DIR"/.kube/config
+}
+
 LaunchMaster()
 {
     if ! sudo kubeadm init "$KADM_OPTIONS" --config "$KUBEADM_CONFIG"
@@ -327,21 +342,14 @@ LaunchMaster()
 #     sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
 #     sudo chown "$(id -u $ACTOR)":"$(id -g $ACTOR)" "$HOME"/.kube/config
 
-#     ACTOR="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
-    ACTOR=$(id -un) # Get user/actor running the script
 
-    HOME_DIR=$(getent passwd "$ACTOR" | awk -F ':' '{print $6}')
-    mkdir -p "$HOME_DIR"/.kube/
-    cp -f /etc/kubernetes/admin.conf "$HOME_DIR"/.kube/config
-    chown "$(id -u $ACTOR)":"$(id -g $ACTOR)" "$HOME_DIR"/.kube
-    chown "$(id -u $ACTOR)":"$(id -g $ACTOR)" "$HOME_DIR"/.kube/config
+    if [ ! -z "$ACTOR" ]
+    then
+        KubeConfig "$ACTOR"
+    fi
 
-#   https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/#append-home-kube-config-to-your-kubeconfig-environment-variable
-    echo "$KUBECONFIG" | grep -q ".*$HOME_DIR\/.kube\/config.*" || export KUBECONFIG="$KUBECONFIG":"$HOME_DIR"/.kube/config
-#     export KUBECONFIG="$KUBECONFIG":"$HOME_DIR"/.kube/config
+    KubeConfig $(id -un) # Get user/actor running the script
 
-#    # Alternatively, if one is a root user/actor, run this:
-#     export KUBECONFIG=/etc/kubernetes/admin.conf
 }
 
 CNI()
