@@ -343,7 +343,7 @@ LaunchMaster()
 #     sudo chown "$(id -u $ACTOR)":"$(id -g $ACTOR)" "$HOME"/.kube/config
 
 
-    if [ ! -z "$ACTOR" ]
+    if [ -n "$ACTOR" ]
     then
         KubeConfig "$ACTOR"
     fi
