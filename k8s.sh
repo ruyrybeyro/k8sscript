@@ -22,6 +22,9 @@ KSHOST=""
 
 FIREWALL="no"
 
+# change for false for control plane to run pods or single node cluster
+SCHEDULE_TAINT="true"
+
 KADM_OPTIONS=""
 # uncomment for ignoring warnings if setup not running with recommended specs
 KADM_OPTIONS="--ignore-preflight-errors=NumCPU,Mem"
@@ -256,8 +259,17 @@ nodeRegistration:
   criSocket: "$SOCK"
   name: "$KSHOST"
   taints:
+EOF5
+
+    if [ $SCHEDULE_TAINT = "true" ]
+    then
+        cat <<EOF6 | sudo tee -a $KUBEADM_CONFIG
     - effect: NoSchedule
       key: node-role.kubernetes.io/master
+EOF6
+    fi
+
+    cat <<EOF7 | sudo tee -a $KUBEADM_CONFIG
     - effect: NoExecute
       key: node.cilium.io/agent-not-ready
 localAPIEndpoint:
@@ -298,7 +310,7 @@ featureGates:
   NodeSwap: true
 memorySwap:
   swapBehavior: LimitedSwap
-EOF5
+EOF7
 }
 
 LaunchMaster()
@@ -381,7 +393,7 @@ DisplaySlaveJoin()
 # fix multiple periodic log errors "User "system:kube-scheduler" cannot list resource..."
 FixRole()
 {
-    cat <<EOF6 | sudo tee /opt/k8s/kube-scheduler-role-binding.yaml
+    cat <<EOF8 | sudo tee /opt/k8s/kube-scheduler-role-binding.yaml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -409,7 +421,7 @@ subjects:
   - kind: ServiceAccount
     name: kube-scheduler
     namespace: kube-system
-EOF6
+EOF8
     kubectl apply -f /opt/k8s/kube-scheduler-role-binding.yaml
 }
 
