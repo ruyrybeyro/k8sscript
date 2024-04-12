@@ -320,9 +320,9 @@ KubeConfig()
 {
     HOME_DIR=$(getent passwd "$1" | awk -F ':' '{print $6}')
     mkdir -p "$HOME_DIR"/.kube/
-    cp -f /etc/kubernetes/admin.conf "$HOME_DIR"/.kube/config
-    chown "$(id -u $1)":"$(id -g $1)" "$HOME_DIR"/.kube
-    chown "$(id -u $1)":"$(id -g $1)" "$HOME_DIR"/.kube/config
+    sudo cp -f /etc/kubernetes/admin.conf "$HOME_DIR"/.kube/config
+    sudo chown "$(id -u $1)":"$(id -g $1)" "$HOME_DIR"/.kube
+    sudo chown "$(id -u $1)":"$(id -g $1)" "$HOME_DIR"/.kube/config
 
 #   https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/#append-home-kube-config-to-your-kubeconfig-environment-variable
     echo "$KUBECONFIG" | grep -q ".*$HOME_DIR\/.kube\/config.*" || export KUBECONFIG="$KUBECONFIG":"$HOME_DIR"/.kube/config
