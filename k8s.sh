@@ -24,6 +24,8 @@ FIREWALL="no"
 
 # change for false for control plane to run pods or single node cluster
 SCHEDULE_TAINT="true"
+# if single node, besides SCHEDULE_TAINT="true", change to true
+SINGLE_NODE="false"
 
 #ACTOR="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
 
@@ -370,6 +372,11 @@ CNI()
     # get last cilium version
     VERSION=$(helm search repo cilium/cilium | awk 'END {print $2}')
     helm install cilium cilium/cilium --version "$VERSION" --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
+
+    if [ "$SINGLE_NODE" = "true" ]
+    then
+        kubectl patch deployment  cilium-operator -n kube-system -p '{"spec":{"replicas":1}}'
+    fi
 
     cilium status
 }
