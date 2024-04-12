@@ -325,7 +325,7 @@ KubeConfig()
     sudo chown "$(id -u $1)":"$(id -g $1)" "$HOME_DIR"/.kube/config
 
 #   https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/#append-home-kube-config-to-your-kubeconfig-environment-variable
-    echo "$KUBECONFIG" | grep -q ".*$HOME_DIR\/.kube\/config.*" || export KUBECONFIG="$KUBECONFIG":"$HOME_DIR"/.kube/config
+    # echo "$KUBECONFIG" | grep -q ".*$HOME_DIR\/.kube\/config.*" || export KUBECONFIG="$KUBECONFIG":"$HOME_DIR"/.kube/config
 }
 
 LaunchMaster()
