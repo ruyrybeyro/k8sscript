@@ -33,6 +33,9 @@ KADM_OPTIONS=""
 # uncomment for ignoring warnings if setup not running with recommended specs
 KADM_OPTIONS="--ignore-preflight-errors=NumCPU,Mem"
 
+CNI="cilium"
+#CNI="calico"
+
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
 
@@ -273,14 +276,20 @@ EOF5
 EOF6
     fi
 
-    cat <<EOF7 | sudo tee -a $KUBEADM_CONFIG
+    if [ $CNI = "cilium" ]
+    then
+        cat <<EOF7 | sudo tee -a $KUBEADM_CONFIG
     - effect: NoExecute
       key: node.cilium.io/agent-not-ready
+skipPhases:
+  - addon/kube-proxy
+EOF7
+    fi
+
+    cat <<EOF8 | sudo tee -a $KUBEADM_CONFIG
 localAPIEndpoint:
   advertiseAddress: "$IPADDR"
   bindPort: 6443
-skipPhases:
-  - addon/kube-proxy
 
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
@@ -314,7 +323,7 @@ featureGates:
   NodeSwap: true
 memorySwap:
   swapBehavior: LimitedSwap
-EOF7
+EOF8
 }
 
 
@@ -354,31 +363,38 @@ LaunchMaster()
 
 }
 
-CNI()
+DeployCNI()
 {
-    # kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+    case "$CNI" in
+        "calico")
+            kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+        ;;
 
-    # install Cilium CLI
-    sudo dnf -y install go
-    CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
-    GOOS=$(go env GOOS)
-    GOARCH=$(go env GOARCH)
-    curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"$CILIUM_CLI_VERSION/cilium-$GOOS-$GOARCH".tar.gz
-    sudo tar -C /usr/local/bin -xzvf cilium-"$GOOS-$GOARCH".tar.gz
-    rm cilium-"$GOOS-$GOARCH".tar.gz
+        "cilium")
+            # install Cilium CLI
+            sudo dnf -y install go
+            CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+            GOOS=$(go env GOOS)
+            GOARCH=$(go env GOARCH)
+            curl -qL --remote-name-all https://github.com/cilium/cilium-cli/releases/download/"$CILIUM_CLI_VERSION/cilium-$GOOS-$GOARCH".tar.gz
+            sudo tar -C /usr/local/bin -xzvf cilium-"$GOOS-$GOARCH".tar.gz
+            rm cilium-"$GOOS-$GOARCH".tar.gz
 
-    # add the cilium repository
-    helm repo add cilium https://helm.cilium.io/
-    # get last cilium version
-    VERSION=$(helm search repo cilium/cilium | awk 'END {print $2}')
-    helm install cilium cilium/cilium --version "$VERSION" --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
+            # add the cilium repository
+            helm repo add cilium https://helm.cilium.io/
+            # get last cilium version
+            VERSION=$(helm search repo cilium/cilium | awk 'END {print $2}')
+            helm install cilium cilium/cilium --version "$VERSION" --namespace kube-system --set kubeProxyReplacement=true  --set k8sServiceHost="$IPADDR" --set k8sServicePort=6443
 
-    if [ "$SINGLE_NODE" = "true" ]
-    then
-        kubectl patch deployment  cilium-operator -n kube-system -p '{"spec":{"replicas":1}}'
-    fi
+            if [ "$SINGLE_NODE" = "true" ]
+            then
+                kubectl patch deployment  cilium-operator -n kube-system -p '{"spec":{"replicas":1}}'
+            fi
 
-    cilium status
+            cilium status
+        ;;
+
+    esac
 }
 
 WaitForNodeUP()
@@ -408,7 +424,7 @@ DisplaySlaveJoin()
 # fix multiple periodic log errors "User "system:kube-scheduler" cannot list resource..."
 FixRole()
 {
-    cat <<EOF8 | sudo tee /opt/k8s/kube-scheduler-role-binding.yaml
+    cat <<EOF9 | sudo tee /opt/k8s/kube-scheduler-role-binding.yaml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -436,7 +452,7 @@ subjects:
   - kind: ServiceAccount
     name: kube-scheduler
     namespace: kube-system
-EOF8
+EOF9
     kubectl apply -f /opt/k8s/kube-scheduler-role-binding.yaml
 }
 
@@ -503,7 +519,7 @@ main()
     KubeadmConfig
     LaunchMaster
     FixRole
-    CNI
+    DeployCNI
     WaitForNodeUP
 
     Metrics
