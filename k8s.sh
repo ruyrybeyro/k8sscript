@@ -315,9 +315,17 @@ kind: KubeletConfiguration
 cgroupDriver: systemd
 authentication:
   anonymous:
+    enabled: false
+  webhook:
+    cacheTTL: 0s
     enabled: true
+  x509:
+    clientCAFile: /etc/kubernetes/pki/ca.crt
 authorization:
-  mode: AlwaysAllow
+  mode: Webhook
+  webhook:
+    cacheAuthorizedTTL: 0s
+    cacheUnauthorizedTTL: 0s
 failSwapOn: false
 featureGates:
   NodeSwap: true
