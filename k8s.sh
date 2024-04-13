@@ -97,8 +97,7 @@ InstallOSPackages()
     sudo dnf install -y haveged
 
     # Start the "haveged" service to improve entropy in order to build certificates, just in case
-    sudo systemctl enable haveged.service
-    sudo chkconfig haveged on
+    sudo systemctl --now enable haveged.service
 
     if [ "$FIREWALL" != "no" ]
     then
