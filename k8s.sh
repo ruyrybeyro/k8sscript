@@ -93,7 +93,6 @@ InstallOSPackages()
     # Install necessary packages
     sudo dnf install -y jq wget curl tar vim yum-utils ca-certificates gnupg ipset ipvsadm iproute-tc git net-tools bind-utils epel-release
 
-    sudo dnf update -y
     sudo dnf install -y haveged
 
     # Start the "haveged" service to improve entropy in order to build certificates, just in case
