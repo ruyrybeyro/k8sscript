@@ -17,10 +17,23 @@ KSHOST=""
 # COUNT=${count}
 # KSHOST="k8s-$NODE-$COUNT"
 
+# IP address list of ALL control plane nodes, separated by spaces
+# per the k8s RAFT protocol, recommended a minimum of 3, and a even number
+# for production
+K8S_CP_IPS=""
+
+# k8s control plane virtual IP
+K8S_CP_VIP=""
+
+# k8s control plane DNS name
+K8S_CP_VIP_NAME=""
+
 # ----------------
 # VARIABLES
 
-FIREWALL="no"
+# if multiple control planes, for now, next both options should be true
+MULTIPLE_CP="true"
+KUBE_VIP="true"
 
 # change for false for control plane to run pods or single node cluster
 SCHEDULE_TAINT="true"
@@ -35,6 +48,8 @@ KADM_OPTIONS="--ignore-preflight-errors=NumCPU,Mem"
 
 CNI="cilium"
 #CNI="calico"
+
+FIREWALL="no"
 
 CONTAINERD_CONFIG="/etc/containerd/config.toml"
 KUBEADM_CONFIG="/opt/k8s/kubeadm-config.yaml"
@@ -332,6 +347,23 @@ memorySwap:
 EOF8
 }
 
+KubeVipSetup()
+{
+    mkdir -p /etc/kubernetes/manifests
+
+    ctr -n k8s.io image pull ghcr.io/kube-vip/kube-vip:latest
+    ctr -n k8s.io run --rm --net-host ghcr.io/kube-vip/kube-vip:latest vip \
+/kube-vip manifest daemonset \
+    --address $K8S_CP_VIP \
+    --inCluster \
+    --taint \
+    --controlplane \
+    --enableLoadBalancer \
+    --arp \
+    --leaderElection | tee /etc/kubernetes/manifests/kube-vip.yaml
+
+    wget -O /etc/kubernetes/manifests/rbac.yaml https://kube-vip.io/manifests/rbac.yaml
+}
 
 KubeConfig()
 {
@@ -521,6 +553,11 @@ main()
 
     InstallHelm
     Installk9s
+
+    if [ KUBE_VIP = "true" ]
+    then
+        KubeVipSetup
+    fi
 
     KubeadmConfig
     LaunchMaster
