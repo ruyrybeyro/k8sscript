@@ -4,12 +4,11 @@
 # FQDN definitions
 
 # Can be controlplane or worker
-# NODE="controlplane"
+NODE="controlplane"
 # NODE="worker"
 
 # FQDN name of node to be installed
-KSHOST=""
-#KSHOST="k8sm01" # example Control Plane node
+KSHOST="k8sm01" # example Control Plane node
 #KSHOST="k8sw01" # example Worker node
 
 # Example utilising external variables ${node_name} and ${count}
@@ -20,13 +19,17 @@ KSHOST=""
 # IP address list of ALL control plane nodes, separated by spaces
 # per the k8s RAFT protocol, recommended a minimum of 3, and a even number
 # for production
-K8S_CP_IPS=""
+K8S_CP_IPS="192.168.5.130"
+
+# DNS names of ALL control plane nodes, by the same order as K8S_CP_IPS
+# separated by spaces
+K8S_CP_NAMES="k8sm01"
 
 # k8s control plane virtual IP
-K8S_CP_VIP=""
+K8S_CP_VIP="192.168.5.135"
 
 # k8s control plane DNS name
-K8S_CP_VIP_NAME=""
+K8S_CP_VIP_NAME="k8s"
 
 # ----------------
 # VARIABLES
@@ -349,21 +352,23 @@ EOF8
 
 KubeVipSetup()
 {
+    sudo sysctl -w net.ipv4.ip_nonlocal_bind=1
+    #sudo setenforce 0
+
     mkdir -p /etc/kubernetes/manifests
 
-    ctr -n k8s.io image pull ghcr.io/kube-vip/kube-vip:latest
-    ctr -n k8s.io run --rm --net-host ghcr.io/kube-vip/kube-vip:latest vip \
-/kube-vip manifest daemonset \
+    sudo ctr -n k8s.io image pull ghcr.io/kube-vip/kube-vip:latest
+    sudo ctr -n k8s.io run --rm --net-host ghcr.io/kube-vip/kube-vip:latest vip \
+/kube-vip manifest pod \
     --address $K8S_CP_VIP \
-    --inCluster \
-    --taint \
     --controlplane \
     --enableLoadBalancer \
     --arp \
-    --leaderElection | tee /etc/kubernetes/manifests/kube-vip.yaml
+    --leaderElection | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
 
-    wget -O /etc/kubernetes/manifests/rbac.yaml https://kube-vip.io/manifests/rbac.yaml
+    #sudo wget -O /etc/kubernetes/manifests/rbac.yaml https://kube-vip.io/manifests/rbac.yaml
 }
+
 
 KubeConfig()
 {
@@ -554,11 +559,11 @@ main()
     InstallHelm
     Installk9s
 
-    if [ KUBE_VIP = "true" ]
+    if [ $KUBE_VIP = "true" ]
     then
         KubeVipSetup
     fi
-
+    exit 1
     KubeadmConfig
     LaunchMaster
     FixRole
